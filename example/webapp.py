@@ -22,6 +22,7 @@ if not SPNAME:
 # load templates
 HOME = open('templates/home.html').read()
 PUID = open('templates/puid.html').read()
+ERROR = open('templates/error.html').read()
 
 class HelloHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -39,7 +40,6 @@ class HelloHandler(BaseHTTPRequestHandler):
             self.send_error(404, 'File Not Found: %s' % self.path)
             return
         
-        
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
         if ctype == 'multipart/form-data':
             postvars = cgi.parse_multipart(self.rfile, pdict)
@@ -49,32 +49,34 @@ class HelloHandler(BaseHTTPRequestHandler):
         else:
             postvars = {}
         
-        print repr(postvars)
-        
-        if 'wwpass_status' in postvars and postvars['wwpass_status'][0] == '200':
-            # Success
-            ticket = postvars['wwpass_response'][0]
-            print 'ticket -- %s' % ticket
-            status, response = conn.getPUID(ticket)
-            if status:
-                
-                print 'puid -- %s' % response
-                
+        if 'wwpass_status' in postvars and 'wwpass_response' in postvars:
+            if postvars['wwpass_status'][0] == '200':
+                ticket = postvars['wwpass_response'][0]
+                status, response = conn.getPUID(ticket)
+                if status:
+                    # Success
+                    self.send_response(200)
+                    self.send_header("Content-type", "text/html")
+                    self.end_headers()
+                    self.wfile.write(PUID.replace('{{ PUID }}', response))
+                else:
+                    # Error — getPuid
+                    self.send_response(200)
+                    self.send_header("Content-type", "text/html")
+                    self.end_headers()
+                    self.wfile.write(ERROR.replace('{{ ERROR }}', response))
+            else:
+                # Error — authentication 
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
-                self.wfile.write(PUID.replace('{{ PUID }}', response))
-                
-            else:
-                # Error — authentication 
-                pass
+                self.wfile.write(ERROR.replace('{{ ERROR }}', '%s: %s' % (
+                    postvars['wwpass_status'][0],
+                    postvars['wwpass_response'][0]
+                    )))
         else:
-            # Error — no wwpass status
-            pass
-            
-            
-        
-
+            # Error — not found wwpass_status
+            self.send_error(400, 'Bad request: lost params wwpass_status or wwpass_response.')
 
 def main():
     try:
