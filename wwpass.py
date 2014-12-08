@@ -104,6 +104,8 @@ class WWPASSConnection:
 
     def unlock(self,ticket,lockid):
         return self.makeRequest('GET','unlock', ticket=ticket, lockid=lockid)
+    def getSessionKey(self,ticket):
+        return self.makeRequest('GET','key', ticket=ticket)
     
     def createPFID(self, data=''):
         if data:
