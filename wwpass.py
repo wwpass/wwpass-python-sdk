@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__="Rostislav Kondratenko <r.kondratenko@wwpass.com>"
-__date__ ="$19.05.2009 18:05:15$"
+__date__ ="$27.11.2014 18:05:15$"
 
 # Copyright 2009-2011 WWPASS Corporation
 #
@@ -23,10 +23,6 @@ if sys.platform != 'win32':
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 reload(sys)
 sys.setdefaultencoding('utf-8')
-
-webapppath = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(webapppath)
-os.chdir(webapppath)
 
 import pickle
 import pycurl as p
