@@ -44,14 +44,15 @@ class WWPASSConnection:
         self.spfe_addr = "https://%s"%spfe_addr if spfe_addr.find('://') == -1 else spfe_addr
 
     def makeRequest(self,method,command, attempts = 3,**paramsDict):
+        params = {k:v for k,v in paramsDict.iteritems() if v}
         try:
             if method == 'GET':
                 self.conn.setopt(p.HTTPGET,1)
-                self.conn.setopt(p.URL, self.spfe_addr + '/'+command+'?'+urllib.urlencode(paramsDict))
+                self.conn.setopt(p.URL, self.spfe_addr + '/'+command+'?'+urllib.urlencode(params))
             else:
                 self.conn.setopt(p.POST,1)
                 self.conn.setopt(p.URL, self.spfe_addr + '/'+command)
-                data=urllib.urlencode(paramsDict)
+                data=urllib.urlencode(params)
                 self.conn.setopt(p.POSTFIELDS,data)
             b = StringIO.StringIO()
             self.conn.setopt(p.WRITEFUNCTION,b.write)
@@ -61,7 +62,7 @@ class WWPASSConnection:
         except p.error, e:
             if attempts>0:
                 attempts -= 1
-                return self.makeRequest(method,command,attempts,**paramsDict)
+                return self.makeRequest(method,command,attempts,**params)
             else:
                 raise
         except Exception, e:
@@ -77,57 +78,58 @@ class WWPASSConnection:
     def getTicket(self,ttl=120, auth_types=""):
         return self.makeRequest('GET','get', ttl = ttl, auth_type=auth_types)
 
-    def getPUID(self, ticket, auth_types=""):
-        return self.makeRequest('GET','puid', ticket=ticket, auth_type=auth_types)
+    def getPUID(self, ticket, auth_types="", finalize = None):
+        return self.makeRequest('GET','puid', ticket=ticket, auth_type=auth_types, finalize=finalize)
 
     def putTicket(self,ticket,ttl=120, auth_types=""):
         return self.makeRequest('GET','put', ticket=ticket, ttl = ttl, auth_type=auth_types)
 
-    def readData(self,ticket, container=''):
-        return self.makeRequest('GET','read', ticket=ticket, container=container)
+    def readData(self,ticket, container='', finalize = None):
+        return self.makeRequest('GET','read', ticket=ticket, container=container, finalize=finalize)
 
     def readDataAndLock(self, ticket, lockTimeout, container=''):
         return self.makeRequest('GET','read', ticket=ticket, container=container, lock="1", to=lockTimeout)
 
-    def writeData(self,ticket, data, container=''):
-        return self.makeRequest('POST','write', ticket=ticket, data = data, container=container)
-    
-    def writeDataAndUnlock(self,ticket, data, container=''):
-        return self.makeRequest('POST','write', ticket=ticket, data = data, container=container, unlock="1")
+    def writeData(self,ticket, data, container='', finalize = None):
+        return self.makeRequest('POST','write', ticket=ticket, data = data, container=container, finalize=finalize)
+
+    def writeDataAndUnlock(self,ticket, data, container='', finalize = None):
+        return self.makeRequest('POST','write', ticket=ticket, data = data, container=container, unlock="1", finalize=finalize)
 
     def lock(self,ticket,lockTimeout,lockid):
         return self.makeRequest('GET','lock',ticket=ticket,lockid=lockid,to=lockTimeout)
 
-    def unlock(self,ticket,lockid):
-        return self.makeRequest('GET','unlock', ticket=ticket, lockid=lockid)
-    def getSessionKey(self,ticket):
-        return self.makeRequest('GET','key', ticket=ticket)
+    def unlock(self,ticket,lockid, finalize = None):
+        return self.makeRequest('GET','unlock', ticket=ticket, lockid=lockid, finalize=finalize)
     
+    def getSessionKey(self,ticket, finalize = None):
+        return self.makeRequest('GET','key', ticket=ticket, finalize=finalize)
+
     def createPFID(self, data=''):
         if data:
             return self.makeRequest('POST','sp/create', data=data)
         else:
             return self.makeRequest('GET','sp/create')
-    
+
     def removePFID(self, pfid):
         return self.makeRequest('POST','sp/remove', pfid=pfid)
-        
+
     def readDataSP(self,pfid):
         return self.makeRequest('GET','sp/read', pfid=pfid)
-    
+
     def readDataSPandLock(self,pfid,lockTimeout):
         return self.makeRequest('GET','sp/read', pfid=pfid, to=lockTimeout, lock=1)
-   
+
     def writeDataSP(self,pfid, data):
         return self.makeRequest('POST','sp/write', pfid=pfid, data = data)
     def writeDataSPandUnlock(self,pfid, data):
         return self.makeRequest('POST','sp/write', pfid=pfid, data = data, unlock=1)
-    
+
     def lockSP(self,lockid,lockTimeout):
         return self.makeRequest('GET','sp/lock',lockid=lockid,to=lockTimeout)
 
     def unlockSP(self,lockid):
-        return self.makeRequest('GET','sp/unlock',lockid=lockid)    
+        return self.makeRequest('GET','sp/unlock',lockid=lockid)  
    
 
 # @todo review WWPASSConnectionMT
