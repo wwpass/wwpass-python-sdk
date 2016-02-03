@@ -19,11 +19,6 @@ __date__ ="$27.11.2014 18:05:15$"
 import locale
 import sys
 import os
-if sys.platform != 'win32':
-    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
 import pickle
 import pycurl as p
 import StringIO
@@ -31,38 +26,38 @@ import urllib
 from threading import Lock
 
 class WWPASSConnection:
-    def __init__(self, key_file, cert_file, timeout = 10, spfe_addr = 'https://spfe.wwpass.com', cafile = None):
+    def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', cafile=None):
         self.conn = p.Curl()
         if (cafile):
             self.conn.setopt(p.SSL_VERIFYPEER, True)
-            self.conn.setopt(p.CAINFO,cafile)
+            self.conn.setopt(p.CAINFO, cafile)
         else:
             self.conn.setopt(p.SSL_VERIFYPEER, False)
         self.conn.setopt(p.TIMEOUT_MS,(int)(timeout*1000))
-        self.conn.setopt(p.SSLCERT,cert_file)
-        self.conn.setopt(p.SSLKEY,key_file)
+        self.conn.setopt(p.SSLCERT, cert_file)
+        self.conn.setopt(p.SSLKEY, key_file)
         self.spfe_addr = "https://%s"%spfe_addr if spfe_addr.find('://') == -1 else spfe_addr
 
-    def makeRequest(self,method,command, attempts = 3,**paramsDict):
-        params = {k:v for k,v in paramsDict.iteritems() if v}
+    def makeRequest(self, method, command, attempts=3,**paramsDict):
+        params = {k:v for k, v in paramsDict.iteritems() if v}
         try:
             if method == 'GET':
-                self.conn.setopt(p.HTTPGET,1)
+                self.conn.setopt(p.HTTPGET, 1)
                 self.conn.setopt(p.URL, self.spfe_addr + '/'+command+'?'+urllib.urlencode(params))
             else:
-                self.conn.setopt(p.POST,1)
+                self.conn.setopt(p.POST, 1)
                 self.conn.setopt(p.URL, self.spfe_addr + '/'+command)
-                data=urllib.urlencode(params)
-                self.conn.setopt(p.POSTFIELDS,data)
+                data = urllib.urlencode(params)
+                self.conn.setopt(p.POSTFIELDS, data)
             b = StringIO.StringIO()
-            self.conn.setopt(p.WRITEFUNCTION,b.write)
+            self.conn.setopt(p.WRITEFUNCTION, b.write)
             self.conn.perform()
-            res=pickle.loads(b.getvalue())
+            res = pickle.loads(b.getvalue())
             return res['result'],res['data']
         except p.error, e:
             if attempts>0:
                 attempts -= 1
-                return self.makeRequest(method,command,attempts,**params)
+                return self.makeRequest(method, command, attempts,**params)
             else:
                 raise
         except Exception, e:
@@ -75,34 +70,34 @@ class WWPASSConnection:
             return False, "SPFE returned ticket without a colon"
         return True, ticket[:pos]
 
-    def getTicket(self,ttl=120, auth_types=""):
-        return self.makeRequest('GET','get', ttl = ttl, auth_type=auth_types)
+    def getTicket(self, ttl=120, auth_types=""):
+        return self.makeRequest('GET','get', ttl=ttl, auth_type=auth_types)
 
     def getPUID(self, ticket, auth_types="", finalize = None):
         return self.makeRequest('GET','puid', ticket=ticket, auth_type=auth_types, finalize=finalize)
 
-    def putTicket(self,ticket,ttl=120, auth_types=""):
-        return self.makeRequest('GET','put', ticket=ticket, ttl = ttl, auth_type=auth_types)
+    def putTicket(self, ticket, ttl=120, auth_types=""):
+        return self.makeRequest('GET','put', ticket=ticket, ttl=ttl, auth_type=auth_types)
 
-    def readData(self,ticket, container='', finalize = None):
+    def readData(self, ticket, container='', finalize = None):
         return self.makeRequest('GET','read', ticket=ticket, container=container, finalize=finalize)
 
     def readDataAndLock(self, ticket, lockTimeout, container=''):
         return self.makeRequest('GET','read', ticket=ticket, container=container, lock="1", to=lockTimeout)
 
-    def writeData(self,ticket, data, container='', finalize = None):
+    def writeData(self, ticket, data, container='', finalize = None):
         return self.makeRequest('POST','write', ticket=ticket, data = data, container=container, finalize=finalize)
 
-    def writeDataAndUnlock(self,ticket, data, container='', finalize = None):
+    def writeDataAndUnlock(self, ticket, data, container='', finalize = None):
         return self.makeRequest('POST','write', ticket=ticket, data = data, container=container, unlock="1", finalize=finalize)
 
-    def lock(self,ticket,lockTimeout,lockid):
-        return self.makeRequest('GET','lock',ticket=ticket,lockid=lockid,to=lockTimeout)
+    def lock(self, ticket, lockTimeout, lockid):
+        return self.makeRequest('GET','lock',ticket=ticket, lockid=lockid, to=lockTimeout)
 
-    def unlock(self,ticket,lockid, finalize = None):
+    def unlock(self, ticket, lockid, finalize = None):
         return self.makeRequest('GET','unlock', ticket=ticket, lockid=lockid, finalize=finalize)
     
-    def getSessionKey(self,ticket, finalize = None):
+    def getSessionKey(self, ticket, finalize = None):
         return self.makeRequest('GET','key', ticket=ticket, finalize=finalize)
 
     def createPFID(self, data=''):
@@ -114,40 +109,36 @@ class WWPASSConnection:
     def removePFID(self, pfid):
         return self.makeRequest('POST','sp/remove', pfid=pfid)
 
-    def readDataSP(self,pfid):
+    def readDataSP(self, pfid):
         return self.makeRequest('GET','sp/read', pfid=pfid)
 
-    def readDataSPandLock(self,pfid,lockTimeout):
+    def readDataSPandLock(self, pfid, lockTimeout):
         return self.makeRequest('GET','sp/read', pfid=pfid, to=lockTimeout, lock=1)
 
-    def writeDataSP(self,pfid, data):
-        return self.makeRequest('POST','sp/write', pfid=pfid, data = data)
-    def writeDataSPandUnlock(self,pfid, data):
-        return self.makeRequest('POST','sp/write', pfid=pfid, data = data, unlock=1)
+    def writeDataSP(self, pfid, data):
+        return self.makeRequest('POST','sp/write', pfid=pfid, data=data)
+    def writeDataSPandUnlock(self, pfid, data):
+        return self.makeRequest('POST','sp/write', pfid=pfid, data=data, unlock=1)
 
-    def lockSP(self,lockid,lockTimeout):
-        return self.makeRequest('GET','sp/lock',lockid=lockid,to=lockTimeout)
+    def lockSP(self, lockid, lockTimeout):
+        return self.makeRequest('GET','sp/lock',lockid=lockid, to=lockTimeout)
 
-    def unlockSP(self,lockid):
+    def unlockSP(self, lockid):
         return self.makeRequest('GET','sp/unlock',lockid=lockid)  
    
-
-# @todo review WWPASSConnectionMT
-# @fixed WWPASSConnection (add cafile)
-
 class WWPASSConnectionMT(WWPASSConnection):
-    def __init__(self, key_file, cert_file, timeout = 10, spfe_addr = 'spfe.wwpass.com', ca_file = None, initial_connections = 2):
-        self.Pool=[]
-        self.key_file=key_file
-        self.cert_file=cert_file
-        self.ca_file=ca_file
+    def __init__(self, key_file, cert_file, timeout=10, spfe_addr='spfe.wwpass.com', ca_file=None, initial_connections=2):
+        self.Pool = []
+        self.key_file = key_file
+        self.cert_file = cert_file
+        self.ca_file = ca_file
         self.timeout = timeout
-        self.spfe_addr=spfe_addr
+        self.spfe_addr = spfe_addr
         for i in xrange(initial_connections):
             self.addConnection()
 
     def addConnection(self, acquired = False):
-        c=WWPASSConnection(self.key_file, self.cert_file, self.timeout, self.spfe_addr, self.ca_file)
+        c = WWPASSConnection(self.key_file, self.cert_file, self.timeout, self.spfe_addr, self.ca_file)
         c.lock = Lock()
         if acquired:
             c.lock.acquire()
@@ -161,7 +152,7 @@ class WWPASSConnectionMT(WWPASSConnection):
             conn=self.addConnection(True)
             return conn
 
-    def makeRequest(self,method,command, attempts = 3,**paramsDict):
+    def makeRequest(self, method, command, attempts = 3,**paramsDict):
         conn = None
         try:
             conn = self.getConnection()
