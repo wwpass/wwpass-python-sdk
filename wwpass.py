@@ -39,7 +39,7 @@ class WWPASSConnection:
         self.spfe_addr = "https://%s"%spfe_addr if spfe_addr.find('://') == -1 else spfe_addr
 
     def makeRequest(self, method, command, attempts=3,**paramsDict):
-        params = {k:v for k, v in paramsDict.iteritems() if v}
+        params = {k:v.encode('UTF-8') if type(v)==unicode else v for k, v in paramsDict.iteritems() if v}
         try:
             if method == 'GET':
                 self.conn.setopt(p.HTTPGET, 1)
