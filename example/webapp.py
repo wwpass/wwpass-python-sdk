@@ -8,6 +8,7 @@ from wwpass import WWPASSConnectionMT
 ###### Configuration ######
 # Port to listen
 PORT = 8080
+
 # Name of Service Provider (e.g. 'mysite.com'). Leave None to autodetect
 SPNAME = None
 
@@ -48,7 +49,7 @@ class HelloHandler(BaseHTTPRequestHandler):
         self.wfile.write(HOME.replace('{{ SPNAME }}', SPNAME))
     
     # Handler for WWPass authentication result
-    # It checks the result,aquires PUID from WWPass and displays it to a user.
+    # It checks the result, acquires PUID from WWPass and displays it to a user.
     def do_POST(self):
         if self.path != '/':
             self.send_error(404, 'File Not Found: %s' % self.path)
@@ -93,7 +94,7 @@ class HelloHandler(BaseHTTPRequestHandler):
                     )))
         else:
             # Error. The data is from some other form.
-            self.send_error(400, 'Bad request: lost params wwpass_status or wwpass_response.')
+            self.send_error(400, 'Bad request: no parameters wwpass_status and/or wwpass_response.')
 
 def main():
     # Start a python built-in HTTPServer.
@@ -102,7 +103,7 @@ def main():
         print 'Started httpserver...'
         server.serve_forever()
     except KeyboardInterrupt:
-        print '^C received, shutting down server'
+        print '^C received, shutting down the server'
         server.socket.close()
 
 if __name__ == '__main__':

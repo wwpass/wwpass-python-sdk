@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Python SDK Example</title>
+    <title>WWPass Python SDK Example</title>
 </head>
 <body>
-    <h1>Python SDK Example</h1>
+    <h1>WWPass Python SDK Example</h1>
     
-    <p>Authentificate for see your PUID:</p>
+    <p>Authenticate to view your PUID:</p>
     
     <form id="loginform" method="POST">
-        <button onClick="javascript:OnAuth();return false;">Authenticate</button>
+        <button onClick="javascript:OnAuth();return false;">Sign in with WWPass</button>
     </form>
     
-    <script type="text/javascript" src="//cdn.wwpass.com/packages/wwpass.js/2.1/wwpass.js"></script>
+    <script type="text/javascript" src="//cdn.wwpass.com/packages/latest/wwpass.js"></script>
     <script type="text/javascript">
         function OnAuth() {
             wwpass_auth('{{ SPNAME }}', function (status, response) {
