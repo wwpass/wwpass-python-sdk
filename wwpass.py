@@ -73,31 +73,31 @@ class WWPASSConnection:
     def getTicket(self, ttl=None, auth_types=""):
         return self.makeRequest('GET','get', ttl=ttl or None, auth_type=auth_types or None)
 
-    def getPUID(self, ticket, auth_types="", finalize = None):
+    def getPUID(self, ticket, auth_types="", finalize=None):
         return self.makeRequest('GET','puid', ticket=ticket, auth_type=auth_types or None, finalize=finalize)
 
     def putTicket(self, ticket, ttl=None, auth_types=""):
         return self.makeRequest('GET','put', ticket=ticket, ttl=ttl or None, auth_type=auth_types or None)
 
-    def readData(self, ticket, container='', finalize = None):
+    def readData(self, ticket, container='', finalize=None):
         return self.makeRequest('GET','read', ticket=ticket, container=container or None, finalize=finalize)
 
     def readDataAndLock(self, ticket, lockTimeout, container=''):
         return self.makeRequest('GET','read', ticket=ticket, container=container or None, lock="1", to=lockTimeout)
 
-    def writeData(self, ticket, data, container='', finalize = None):
+    def writeData(self, ticket, data, container='', finalize=None):
         return self.makeRequest('POST','write', ticket=ticket, data = data, container=container or None, finalize=finalize)
 
-    def writeDataAndUnlock(self, ticket, data, container='', finalize = None):
+    def writeDataAndUnlock(self, ticket, data, container='', finalize=None):
         return self.makeRequest('POST','write', ticket=ticket, data = data, container=container or None, unlock="1", finalize=finalize)
 
     def lock(self, ticket, lockTimeout, lockid):
         return self.makeRequest('GET','lock',ticket=ticket, lockid=lockid, to=lockTimeout)
 
-    def unlock(self, ticket, lockid, finalize = None):
+    def unlock(self, ticket, lockid, finalize=None):
         return self.makeRequest('GET','unlock', ticket=ticket, lockid=lockid, finalize=finalize)
     
-    def getSessionKey(self, ticket, finalize = None):
+    def getSessionKey(self, ticket, finalize=None):
         return self.makeRequest('GET','key', ticket=ticket, finalize=finalize)
 
     def createPFID(self, data=''):
@@ -152,7 +152,7 @@ class WWPASSConnectionMT(WWPASSConnection):
             conn=self.addConnection(True)
             return conn
 
-    def makeRequest(self, method, command, attempts = 3,**paramsDict):
+    def makeRequest(self, method, command, attempts=3,**paramsDict):
         conn = None
         try:
             conn = self.getConnection()
