@@ -117,6 +117,7 @@ class WWPASSConnection:
 
     def writeDataSP(self, pfid, data):
         return self.makeRequest('POST','sp/write', pfid=pfid, data=data)
+    
     def writeDataSPandUnlock(self, pfid, data):
         return self.makeRequest('POST','sp/write', pfid=pfid, data=data, unlock=1)
 
