@@ -2,7 +2,7 @@
 __author__="Rostislav Kondratenko <r.kondratenko@wwpass.com>"
 __date__ ="$27.11.2014 18:05:15$"
 
-# Copyright 2009-2011 WWPASS Corporation
+# Copyright 2009-2016 WWPASS Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
