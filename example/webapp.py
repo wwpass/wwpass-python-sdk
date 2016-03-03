@@ -15,14 +15,14 @@ SPNAME = None
 # WWPass CA certificate. Download from https://developers.wwpass.com/downloads
 FCA = '/path/to/wwpass.ca.crt'
 
-#Your Service Provider private key and certificate. By these WWPass will authenticate this server.
+# Your Service Provider private key and certificate. By these WWPass will authenticate this server.
 FKEY = '/path/to/sdk.test.key'
 FCERT = '/path/to/sdk.test.crt'
 
 # Creating multi-threaded connection
 conn = WWPASSConnectionMT(FKEY, FCERT, 15, 'https://spfe.wwpass.com', FCA, 0)
 
-#Autodetecting SPNAME if it was not set
+# Autodetecting SPNAME if it was not set
 if not SPNAME:
     status, SPNAME = conn.getName()
     if not status:
