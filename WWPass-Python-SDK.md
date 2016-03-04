@@ -1,9 +1,7 @@
 # WWPass Python SDK
 Version 3.0
-February 2014
+March 2014
  
-[TOC]
-
 ## CHAPTER 1 - OVERVIEW
 ### Introduction
 The *WWPass Python SDK* comprises a library, examples and documentation that is installed on a Service Provider's system to allow authentication using the WWPass system.  The WWPass Authentication Service is an alternative to, or replacement for, other authentication methods such as user name/password.
