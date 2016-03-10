@@ -46,8 +46,8 @@ The WWPass Python library depends on the Python cURL library with SSL support.
 ##### Parameters
 | Name | Description |
 | --------- | ---------------- | 
-| key_file | The path to the Service Provider's private key. |
-| cert_file | The path to the Service Provider's certificate. |
+| key_file | The path to the Service Provider's private key file. |
+| cert_file | The path to the Service Provider's certificate file. |
 | timeout | Timeout measured in seconds. It is used in all operations. The default is 10 seconds. |
 | spfe_addr | The hostname or base URL of the SPFE. The default name is <https://spfe.wwpass.com>. |
 | cafile |The path to the WWPass Service Provider CA certificate (optional). |
@@ -62,8 +62,8 @@ The WWPass Python library depends on the Python cURL library with SSL support.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
-| keyFile | The path to the Service Provider's private key. |
-| certFile | The path to the Service Provider's certificate. |
+| keyFile | The path to the Service Provider's private key file. |
+| certFile | The path to the Service Provider's certificate file. |
 | timeout | Timeout measured in seconds. It is used in all operations. The default is 10 seconds. | 
 | spfeAddr | The hostname or base URL of the SPFE. The default name is <https://spfe.wwpass.com>. |
 | ca_file | The path to the WWPass Service Provider CA certificate (optional). | 
@@ -76,7 +76,7 @@ The following functions operate the same way for both classes, *WWPassConnection
 
 #### getName()
 ##### Declaration
-  WWPASSConnection.getName()
+    WWPASSConnection.getName()
 ##### Purpose
 Calls to this function get the SP name on the certificate which was used for initiate this *WWPassConnection* instance.
 ##### Returns
