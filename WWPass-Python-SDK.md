@@ -48,7 +48,7 @@ The WWPass Python library depends on the Python cURL library with SSL support.
 | --------- | ---------------- | 
 | key_file | The path to the Service Provider's private key file. |
 | cert_file | The path to the Service Provider's certificate file. |
-| timeout | Timeout measured in seconds. It is used in all operations. The default is 10 seconds. |
+| timeout | Timeout of requests to SPFE measured in seconds. It is used in all operations. The default is 600 seconds. |
 | spfe_addr | The hostname or base URL of the SPFE. The default name is <https://spfe.wwpass.com>. |
 | cafile |The path to the WWPass Service Provider CA certificate (optional). |
 ##### Exception (Throw)
@@ -64,7 +64,7 @@ The WWPass Python library depends on the Python cURL library with SSL support.
 | ------- | -------------- |
 | keyFile | The path to the Service Provider's private key file. |
 | certFile | The path to the Service Provider's certificate file. |
-| timeout | Timeout measured in seconds. It is used in all operations. The default is 10 seconds. | 
+| timeout | Timeout of requests to SPFE measured in seconds. It is used in all operations. The default is 600 seconds. | 
 | spfeAddr | The hostname or base URL of the SPFE. The default name is <https://spfe.wwpass.com>. |
 | ca_file | The path to the WWPass Service Provider CA certificate (optional). | 
 | initial_connections | The number of connections to the SPFE that are initially set up. The default is 2. |
@@ -91,7 +91,7 @@ Calls to this function get a newly-issued ticket from SPFE.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
-| ttl |The period in seconds for the ticket to remain valid since issuance. |
+| ttl |The period in seconds for the ticket to remain valid since issuance. The default is 600 seconds. |
 | auth_types | Defines which credentials will be asked of the user to authenticate this ticket. The values may be any combination of following letters: ‘p’ — to ask for PassKey and access code; ‘s’ — to generate cryptographically secure random number that would be available both to client and Service Provider; or empty string to ask for PassKey only (default). |
 ##### Returns
 `(True, <Ticket issued by the SPFE>)` or
@@ -121,7 +121,7 @@ A call to this function checks the authentication of the ticket and may issue a 
 | Name | Description |
 | ------- | -------------- |
 | ticket | The ticket to validate. |
-| ttl | The period in seconds for the ticket to remain valid since issuance. |
+| ttl | The period in seconds for the ticket to remain valid since issuance. The default is 600 seconds. |
 | auth_types | Defines which credentials will be asked of the user to authenticate this ticket. The values may be any combination of following letters: ‘p’ — to ask for PassKey and access code; ‘s’ — to generate cryptographically secure random number that would be available both to client and Service Provider; or empty string to ask for PassKey only (default). |
 ##### Returns
 `(True, <original or newly-issued ticket>)` or
@@ -139,7 +139,7 @@ Calls to this function request data stored in the user’s data container.
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
 | container | Arbitrary string (only the first 32 bytes are significant) identifying the user’s data container. |
-| finalize | Set to True value to close the ticket after this operation is finished. |
+| finalize | Set to True value to invalidate the ticket after this operation is finished. |
 ##### Returns
 `(True, <data>)` or 
 `(True, None)` if the container was never written to, or 
