@@ -25,7 +25,7 @@ import StringIO
 import urllib
 from threading import Lock
 
-class WWPASSConnection:
+class WWPassConnection:
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', cafile=None):
         self.conn = p.Curl()
         if (cafile):
@@ -127,7 +127,7 @@ class WWPASSConnection:
     def unlockSP(self, lockid):
         return self.makeRequest('GET','sp/unlock',lockid=lockid)  
    
-class WWPASSConnectionMT(WWPASSConnection):
+class WWPassConnectionMT(WWPassConnection):
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='spfe.wwpass.com', ca_file=None, initial_connections=2):
         self.Pool = []
         self.key_file = key_file
@@ -139,7 +139,7 @@ class WWPASSConnectionMT(WWPASSConnection):
             self.addConnection()
 
     def addConnection(self, acquired = False):
-        c = WWPASSConnection(self.key_file, self.cert_file, self.timeout, self.spfe_addr, self.ca_file)
+        c = WWPassConnection(self.key_file, self.cert_file, self.timeout, self.spfe_addr, self.ca_file)
         c.lock = Lock()
         if acquired:
             c.lock.acquire()
@@ -161,3 +161,6 @@ class WWPASSConnectionMT(WWPASSConnection):
         finally:
             if conn != None:
                 conn.lock.release()
+
+WWPASSConnection = WWPassConnection
+WWPASSConnectionMT = WWPassConnectionMT
