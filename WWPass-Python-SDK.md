@@ -1,6 +1,7 @@
 # WWPass Python SDK
 Version 3.0
-March 2014
+
+May 2014
  
 ## CHAPTER 1 - OVERVIEW
 ### Introduction
@@ -40,7 +41,7 @@ The WWPass Python library depends on the Python cURL library with SSL support.
 
 #### Class WWPassConnection
 ##### Declaration
-    WWPASSConnection(key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', cafile=None)
+    WWPassConnection(key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', cafile=None)
 ##### Purpose
 *WWPassConnection* is the class for a WWPass SPFE connection, and a new connection is initiated every time a connection request is made.  The WWPass CA certificate is required for validating the SPFE certificate and can be downloaded at <https://developers.wwpass.com/downloads/wwpass.ca>
 ##### Parameters
@@ -56,7 +57,7 @@ The WWPass Python library depends on the Python cURL library with SSL support.
  
 #### Class WWPassConnectionMT
 ##### Declaration
-    WWPASSConnectionMT(key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', ca_file=None, initial_connections=2)
+    WWPassConnectionMT(key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', ca_file=None, initial_connections=2)
 ##### Purpose
 *WWPassConnectionMT* is an extension over the WWPassConnection class to support multi-threaded applications. The actual number of connections grows on demand. This class is thread-safe.
 ##### Parameters
@@ -76,7 +77,7 @@ The following functions operate the same way for both classes, *WWPassConnection
 
 #### getName()
 ##### Declaration
-    WWPASSConnection.getName()
+    WWPassConnection.getName()
 ##### Purpose
 Calls to this function get the SP name on the certificate which was used for initiate this *WWPassConnection* instance.
 ##### Returns
@@ -99,7 +100,7 @@ Calls to this function get a newly-issued ticket from SPFE.
 
 #### getPUID()
 #### Declaration
-    WWPASSConnection.getPUID(ticket, auth_types='', finalize=None)
+    WWPassConnection.getPUID(ticket, auth_types='', finalize=None)
 ##### Purpose
 *WWPassConnection.getPUID* gets the id of the user from the Service Provider Front End. This ID is unique for each Service Provider.
 ##### Parameters
@@ -131,7 +132,7 @@ The new ticket should be used in further operations with the SPFE.  
 
 #### readData()
 ##### Declaration
-    WWPASSConnection.readData(ticket, container='', finalize=None)
+    WWPassConnection.readData(ticket, container='', finalize=None)
 ##### Purpose
 Calls to this function request data stored in the user’s data container.
 ##### Parameters
@@ -147,9 +148,10 @@ Calls to this function request data stored in the user’s data container.
  
 #### readDataAndLock()
 ##### Declaration
-    WWPASSConnection.readDataAndLock(ticket, lockTimeout, container='')
+    WWPassConnection.readDataAndLock(ticket, lockTimeout, container='')
 ##### Purpose
-Calls to this function request data stored in the user’s data container and tries to atomically lock an associated lock.
+Calls to this function request data stored in the user’s data container and locks an advisory lock with the same name as the name of the data container.  Each WWPass lock has a name or “lock id.”  This function operates locks with the same name as the pertinent data container.
+**Note:** The lock does not lock the data container.  It locks only itself, a common behavior to locks/flags/semaphores in other languages/APIs – so-called “advisory locks.”
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
@@ -163,7 +165,7 @@ Calls to this function request data stored in the user’s data container and tr
 
 #### writeData()
 ##### Declaration
-    WWPASSConnection.writeData(ticket, data, container='', finalize=None)
+    WWPassConnection.writeData(ticket, data, container='', finalize=None)
 ##### Purpose
 Calls to this function write data into the user’s data container.
 ##### Parameters
@@ -179,7 +181,7 @@ Calls to this function write data into the user’s data container.
 
 #### writeDataAndUnlock()
 ##### Declaration
-    WWPASSConnection.writeDataAndUnlock(ticket, data, container='', finalize=None)
+    WWPassConnection.writeDataAndUnlock(ticket, data, container='', finalize=None)
 ##### Purpose
 A call to this function writes data into the user's data container and unlocks an associated lock. If the lock is already unlocked, the write will succeed, but the function will return an appropriate error.
 ##### Parameters
@@ -195,9 +197,10 @@ A call to this function writes data into the user's data container and unlocks a
 
 #### lock()
 ##### Declaration
-    WWPASSConnection.lock(ticket, lockTimeout, lockid='')
+    WWPassConnection.lock(ticket, lockTimeout, lockid='')
 ##### Purpose
-A call to this function tries to lock a lock identified by the user (by authenticated ticket) and lock ID.
+Calls to this function locks an advisory lock widentified by the user (by authenticated ticket) and lock ID. 
+**Note:** The lock does not lock any data container.  It locks only itself, a common behavior to locks/flags/semaphores in other languages/APIs – so-called “advisory locks.”
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
@@ -210,9 +213,10 @@ A call to this function tries to lock a lock identified by the user (by authenti
  
 #### unlock()
 ##### Declaration
-    WWPASSConnection.unlock(ticket, lockid='', finalize=None)
+    WWPassConnection.unlock(ticket, lockid='', finalize=None)
 ##### Purpose
-A call to this function tries to unlock a lock identified by the user (by authenticated ticket) and lock ID.
+Calls to this function unlocks an advisory lock widentified by the user (by authenticated ticket) and lock ID. 
+**Note:** The lock does not lock any data container.  It locks only itself, a common behavior to locks/flags/semaphores in other languages/APIs – so-called “advisory locks.”
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
@@ -225,7 +229,7 @@ A call to this function tries to unlock a lock identified by the user (by authen
  
 #### getSessionKey()
 ##### Declaration
-    WWPASSConnection.getSessionKey(ticket, finalize=None)
+    WWPassConnection.getSessionKey(ticket, finalize=None)
 ##### Purpose
 *WWPassConnection. getSessionKey* return cryptographically secure random number generated for the authentication transaction that is identified by ticket. This value can be used do derive cryptographic keys that will secure communication between client and Service Provider. Note that this key will be available only if the ticket was generated with 's' auth type.
 ##### Parameters
@@ -239,7 +243,7 @@ A call to this function tries to unlock a lock identified by the user (by authen
 
 #### createPFID()
 ##### Declaration
-    WWPASSConnection.createPFID(data='')
+    WWPassConnection.createPFID(data='')
 ##### Purpose
 A call to this function creates a new SP-only container with a unique name and returns its name.  If the data parameter is provided, it writes data to this container.  Concurrent create requests will never return the same PFID.
 ##### Parameters
@@ -252,7 +256,7 @@ A call to this function creates a new SP-only container with a unique name and r
 
 #### removePFID()
 ##### Declaration
-    WWPASSConnection.removePFID(pfid)
+    WWPassConnection.removePFID(pfid)
 ##### Purpose
 Destroys the SP-specific data container.  The container will then become non-existent as if it were never created.
 ##### Parameters
@@ -265,7 +269,7 @@ Destroys the SP-specific data container.  The container will then become non-exi
  
 #### readDataSP()
 ##### Declaration
-    WWPASSConnection.readDataSP(pfid)
+    WWPassConnection.readDataSP(pfid)
 ##### Purpose
 Calls to this function request data stored in the SP-specific data container.
 ##### Parameters
@@ -279,7 +283,7 @@ Calls to this function request data stored in the SP-specific data container.
  
 #### readDataSPandLock()
 ##### Declaration
-    WWPASSConnection.readDataSPandLock(pfid, lockTimeout)
+    WWPassConnection.readDataSPandLock(pfid, lockTimeout)
 ##### Purpose
 Calls to this function request the binary data stored in the Service Provider's Data Container and try to atomically lock an associated lock.
 ##### Parameters
@@ -294,7 +298,7 @@ Calls to this function request the binary data stored in the Service Provider's 
  
 #### writeDataSP()
 ##### Declaration
-    WWPASSConnection.writeDataSP(pfid, data)
+    WWPassConnection.writeDataSP(pfid, data)
 ##### Purpose
 Writes data into the SP-specific data container.
 ##### Parameters
@@ -308,7 +312,7 @@ Writes data into the SP-specific data container.
 
 #### writeDataSPandUnlock()
 ##### Declaration
-    WWPASSConnection.writeDataSPandUnlock(pfid, data)
+    WWPassConnection.writeDataSPandUnlock(pfid, data)
 ##### Purpose
 Writes data into the SP-specific data container and unlocks an associated lock. If the lock is already unlocked, the write will succeed, but the function will return an appropriate error.
 ##### Parameters
@@ -322,7 +326,7 @@ Writes data into the SP-specific data container and unlocks an associated lock. 
  
 #### lockSP()
 ##### Declaration
-    WWPASSConnection.lockSP(lockid, lockTimeout)
+    WWPassConnection.lockSP(lockid, lockTimeout)
 ##### Purpose
 A call to this function tries to lock a lock identified by lockid.
 ##### Parameters
@@ -336,7 +340,7 @@ A call to this function tries to lock a lock identified by lockid.
 
 #### unlockSP()
 ##### Declaration
-    WWPASSConnection.unlockSP(lockid)
+    WWPassConnection.unlockSP(lockid)
 ##### Purpose
 A call to this function tries to unlock a lock identified by lockid.
 ##### Parameters
@@ -346,68 +350,3 @@ A call to this function tries to unlock a lock identified by lockid.
 ##### Returns
 `(True, None)` or
 `(False, <error message>)` 
-
-## APPENDIX A - AUTHENTICATION EXAMPLE
-### Basic WWPass Authentication Example Setup
-
-#### Preconditions
-You have registered your site and have received WWPass Service Provider (SP) credentials (certificate and private key). If, for example, your site has the URL of "mysite.com" and you follow the recommended file naming convention when obtaining SP credentials, the files will be named as mysite.com.crt (for the certificate) and mysite.com.key (for the private key). The [WWPass CA certificate](https://developers.wwpass.com/downloads/wwpass.ca) should also be downloaded and made accessible to WWPass application. If you have root access to your computer, then the /etc/ssl folder is an appropriate place to store the certificates and the key.  Make sure that the script will have enough rights to read the files there. Usually access to /etc/ssl/private is quite limited.
-
-#### Environment Setup
-
-1. Verify that you have Python Version 2.7 on your system.
-2. Download the WWPass Python SDK from the WWPass Developer Site.
-3. Place your SP credentials (certificate and private key) in a directory that is accessible by your Python script.
-
-### Python Authentication Example
-**Note:** The following example code intentionally lacks error checking and reporting for the sake of simplicity and clarity.  You will need to configure the following parameters in the example code Configuration Block:
-
- - SPNAME - Service Provider name (i.e. mycompany.com)
- - FKEY -  Absolute path to your Service Provider’s private key (i.e. /home/user/ssl/mycompany.com.key OR C:/ssl/mycompany.com.key)
- - FCERT - Absolute path to your Service Provider’s client certificate (i.e. /home/user/ssl/mycompany.com.crt OR C:/ssl/mycompany.com.crt)
- - FCA - Absolute path to the WWPass CA certificate (i.e. /home/user/ssl/wwpass_sp_ca.crt OR C:/ssl/ wwpass_sp_ca.crt)
-
-#### Basic Authentication Example – webapp.py
-In this snippet, the parameters of the code are established.  Set your own Service Provider name and paths to the certificate files. 
-```
-SPNAME = None
-FCA = wwpass.ca.crt
-```
-As the server we are using creates a new thread for each request, we use *WWPassConnectionMT*.
-```
-conn = WWPASSConnectionMT(FKEY, FCERT, 15, 'https://spfe.wwpass.com', FCA, 0)
-```
-Next, if the SPNAME was not set, it will be determined automatically.
-```
-if not SPNAME:
- 
-    status, SPNAME = conn.getName()
- 
-    if not status:
- 
-        exit('Connection fail :(')
-```
-Next, the three templates of HTML pages are loaded.
-```
-# load template
-HOME = open(‘templates/home.html’).read()
-PUID = open(‘templates/puid.html’).read()
-ERROR = open(‘templates/error.html’).read()
-```
-The first template (*templates/home.html*) is a login page.  This template is simply served by the *do_GET()* handler of the *HelloHandler* class.  It contains a simple JavaScript that loads the WWPass JavaScript library, starts the WWPass authentication and passes the result through a form back to the server.  Note that *SPNAME* is set by the server in this template.
-
-The second page (*templates/puid.html*) is displayed on the form's POST request. The handler for it is a *do_POST()* function in the same class.  After parsing the query parameters, the status of the authentication is checked.  If the response code is **200 (OK)**, an authenticated ticket is extracted from the POST parameters.
-```
-        if 'wwpass_status' in postvars and postvars['wwpass_status'][0] == '200':
- 
-            # Success
-            ticket = postvars['wwpass_response'][0]
-
-```
-Then, a *getPUID* is called to get a user's PUID, which is simply displayed to the user with the second page (*templates/puid.html*).  (If this had been a real application, the PUID would be used in a query to a user database.) 
-```
-            status, response = conn.getPUID(ticket)
-```
-In this snippet, the status will be True or False depending on whether or not the operation was successful.
-
-After the PUID or an error message is received, the result is displayed to the user using the appropriate template with the second page (*templates/puid.html*) displaying the PUID in case of success, or the third page (*templates/error.html*) displaying an error message if the call failed.
