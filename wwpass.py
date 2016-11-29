@@ -77,7 +77,7 @@ class WWPassConnection:
         return self.makeRequest('GET','puid', ticket=ticket, auth_type=auth_types or None, finalize=finalize)
 
     def putTicket(self, ticket, ttl=None, auth_types="", finalize=None):
-        return self.makeRequest('GET','put', ticket=ticket, ttl=ttl or None, auth_type=auth_types or None, finalize)
+        return self.makeRequest('GET','put', ticket=ticket, ttl=ttl or None, auth_type=auth_types or None, finalize=finalize)
 
     def readData(self, ticket, container='', finalize=None):
         return self.makeRequest('GET','read', ticket=ticket, container=container or None, finalize=finalize)
