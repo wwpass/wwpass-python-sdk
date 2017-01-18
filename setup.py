@@ -8,7 +8,7 @@ setup(
     description='WWPass Service Provider Access Library',
     author='WWPass Corporation',
     author_email='support@wwpass.com',
-    maintainer="Rostislav Kondratenko",
-    maintainer_email="r.kondratenko@wwpass.com",
+    maintainer='Rostislav Kondratenko',
+    maintainer_email='r.kondratenko@wwpass.com',
     py_modules=['wwpass'],
 )
