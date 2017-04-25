@@ -16,19 +16,16 @@ __date__ ="$27.11.2014 18:05:15$"
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import locale
-import sys
-import os
 import pickle
 import pycurl as p
 import StringIO
 import urllib
 from threading import Lock
 
-class WWPassConnection:
+class WWPassConnection(object):
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', cafile=None):
         self.conn = p.Curl()
-        if (cafile):
+        if cafile:
             self.conn.setopt(p.SSL_VERIFYPEER, True)
             self.conn.setopt(p.CAINFO, cafile)
         else:
@@ -39,7 +36,7 @@ class WWPassConnection:
         self.spfe_addr = "https://%s"%spfe_addr if spfe_addr.find('://') == -1 else spfe_addr
 
     def makeRequest(self, method, command, attempts=3,**paramsDict):
-        params = {k:v.encode('UTF-8') if type(v)==unicode else v for k, v in paramsDict.iteritems() if v != None}
+        params = {k:v.encode('UTF-8') if isinstance(v,unicode) else v for k, v in paramsDict.iteritems() if v != None}
         try:
             if method == 'GET':
                 self.conn.setopt(p.HTTPGET, 1)
@@ -62,9 +59,9 @@ class WWPassConnection:
                 raise
         except Exception, e:
             return False, str(e)
-        
+
     def getName(self):
-        (status, ticket) = self.getTicket(0)
+        _, ticket = self.getTicket(0)
         pos = ticket.find(':')
         if pos == -1:
             return False, "SPFE returned ticket without a colon"
@@ -96,7 +93,7 @@ class WWPassConnection:
 
     def unlock(self, ticket, lockid, finalize=None):
         return self.makeRequest('GET','unlock', ticket=ticket, lockid=lockid, finalize=finalize)
-    
+
     def getSessionKey(self, ticket, finalize=None):
         return self.makeRequest('GET','key', ticket=ticket, finalize=finalize)
 
@@ -117,7 +114,7 @@ class WWPassConnection:
 
     def writeDataSP(self, pfid, data):
         return self.makeRequest('POST','sp/write', pfid=pfid, data=data)
-    
+
     def writeDataSPandUnlock(self, pfid, data):
         return self.makeRequest('POST','sp/write', pfid=pfid, data=data, unlock=1)
 
@@ -125,8 +122,8 @@ class WWPassConnection:
         return self.makeRequest('GET','sp/lock',lockid=lockid, to=lockTimeout)
 
     def unlockSP(self, lockid):
-        return self.makeRequest('GET','sp/unlock',lockid=lockid)  
-   
+        return self.makeRequest('GET','sp/unlock',lockid=lockid)
+
 class WWPassConnectionMT(WWPassConnection):
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='spfe.wwpass.com', ca_file=None, initial_connections=2):
         self.Pool = []
@@ -135,7 +132,7 @@ class WWPassConnectionMT(WWPassConnection):
         self.ca_file = ca_file
         self.timeout = timeout
         self.spfe_addr = spfe_addr
-        for i in xrange(initial_connections):
+        for _ in xrange(initial_connections):
             self.addConnection()
 
     def addConnection(self, acquired = False):
@@ -149,9 +146,8 @@ class WWPassConnectionMT(WWPassConnection):
     def getConnection(self):
         for conn in (c for c in self.Pool if c.lock.acquire(False)):
             return conn
-        else:
-            conn=self.addConnection(True)
-            return conn
+        conn=self.addConnection(True)
+        return conn
 
     def makeRequest(self, method, command, attempts=3,**paramsDict):
         conn = None
