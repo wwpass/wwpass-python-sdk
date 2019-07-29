@@ -17,23 +17,30 @@ __date__ ="$27.11.2014 18:05:15$"
 # limitations under the License.
 
 import pickle
-import pycurl as p
-import StringIO
-import urllib
+#import StringIO
 from threading import Lock
+import ssl
+try:
+    # python3
+    from urllib.request import urlopen
+    from urllib.parse import urlencode
+    from urllib.error import URLError
+except ImportError:
+    # python2
+    from urllib2 import urlopen
+    from urllib import urlencode
+
+PIN = 'p'
+SESSION_KEY = 's'
+CLIENT_KEY = 'c'
 
 class WWPassConnection(object):
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', cafile=None):
-        self.conn = p.Curl()
-        if cafile:
-            self.conn.setopt(p.SSL_VERIFYPEER, True)
-            self.conn.setopt(p.CAINFO, cafile)
-        else:
-            self.conn.setopt(p.SSL_VERIFYPEER, False)
-        self.conn.setopt(p.TIMEOUT_MS,(int)(timeout*1000))
-        self.conn.setopt(p.SSLCERT, cert_file)
-        self.conn.setopt(p.SSLKEY, key_file)
+        self.context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
+        self.context.load_cert_chain(certfile=cert_file, keyfile=key_file)
+        self.context.load_verify_locations(cafile=cafile)
         self.spfe_addr = "https://%s"%spfe_addr if spfe_addr.find('://') == -1 else spfe_addr
+        self.timeout = timeout
 
     def makeRequest(self, method, command, attempts=3,**paramsDict):
         params = {k:v.encode('UTF-8') if isinstance(v,unicode) else v for k, v in paramsDict.iteritems() if v != None}
@@ -51,7 +58,18 @@ class WWPassConnection(object):
             self.conn.perform()
             res = pickle.loads(b.getvalue())
             return res['result'],res['data']
-        except p.error, e:
+            if method == 'GET':
+                res = urlopen(self.spfe_addr +'/'+command+'?'+urlencode(params), context=self.context, timeout=self.timeout)
+            else:
+                res = urlopen(self.spfe_addr +'/'+command, data=urlencode(params), context=self.context, timeout=self.timeout)
+            res = pickle.loads(res.read())
+            if not res['result']:
+                if 'code'in res:
+                    raise Exception('SPFE returned error: %s: %s' %(res['code'], res['data']))
+            raise Exception('SPFE returned error: %s' % res['data'])
+            return res
+
+        except (URLError, IOError) as e:
             if attempts>0:
                 attempts -= 1
                 return self.makeRequest(method, command, attempts,**params)
