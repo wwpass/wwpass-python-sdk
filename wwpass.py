@@ -66,7 +66,7 @@ class WWPassConnection(object):
             if not res['result']:
                 if 'code'in res:
                     raise Exception('SPFE returned error: %s: %s' %(res['code'], res['data']))
-            raise Exception('SPFE returned error: %s' % res['data'])
+                raise Exception('SPFE returned error: %s' % res['data'])
             return res
 
         except (URLError, IOError) as e:
@@ -79,7 +79,7 @@ class WWPassConnection(object):
             return False, str(e)
 
     def getName(self):
-        _, ticket = self.getTicket(0)
+        ticket = self.getTicket(0)['ticket']
         pos = ticket.find(':')
         if pos == -1:
             return False, "SPFE returned ticket without a colon"
