@@ -43,7 +43,8 @@ class WWPassConnection(object):
         self.timeout = timeout
 
     def makeRequest(self, method, command, attempts=3,**paramsDict):
-        params = {k:v.encode('UTF-8') if isinstance(v,unicode) else v for k, v in paramsDict.iteritems() if v != None}
+        #params = {k:v.encode('UTF-8') if isinstance(v,unicode) else v for k, v in paramsDict.iteritems() if v != None}
+        params = {k:v.encode('UTF-8') if not isinstance(v,(bytes, int)) else v for k, v in paramsDict.items() if v != None}
         try:
             if method == 'GET':
                 self.conn.setopt(p.HTTPGET, 1)
@@ -67,6 +68,7 @@ class WWPassConnection(object):
                 if 'code'in res:
                     raise Exception('SPFE returned error: %s: %s' %(res['code'], res['data']))
                 raise Exception('SPFE returned error: %s' % res['data'])
+            res = {k:v.decode('UTF-8') if isinstance(v, bytes) else v for k, v in res.items()}
             return res
 
         except (URLError, IOError) as e:
@@ -78,21 +80,34 @@ class WWPassConnection(object):
         except Exception, e:
             return False, str(e)
 
+    def makeAuthTypeString(self, auth_types):
+        auth_type_str = ''
+        if PIN in auth_types:
+            auth_type_str += 'p'
+        if SESSION_KEY in auth_types:
+            auth_type_str += 's'
+        if CLIENT_KEY in  auth_types:
+            auth_type_str += 'c'
+        return auth_type_str
+
     def getName(self):
-        ticket = self.getTicket(0)['ticket']
+        ticket = self.getTicket(ttl=0)['ticket']
         pos = ticket.find(':')
         if pos == -1:
             return False, "SPFE returned ticket without a colon"
         return True, ticket[:pos]
 
-    def getTicket(self, ttl=None, auth_types=""):
-        return self.makeRequest('GET','get', ttl=ttl or None, auth_type=auth_types or None)
+    def getTicket(self, ttl=None, auth_types=()):
+        result = self.makeRequest('GET','get', ttl=ttl or None, auth_type=self.makeAuthTypeString(auth_types) or None)
+        return {'ticket' : result['data'], 'ttl' : result['ttl']}
 
-    def getPUID(self, ticket, auth_types="", finalize=None):
-        return self.makeRequest('GET','puid', ticket=ticket, auth_type=auth_types or None, finalize=finalize)
+    def getPUID(self, ticket, auth_types=(), finalize=None):
+        result = self.makeRequest('GET','puid', ticket=ticket, auth_type=self.makeAuthTypeString(auth_types) or None, finalize=finalize)
+        return {'puid' : result['data']}
 
-    def putTicket(self, ticket, ttl=None, auth_types="", finalize=None):
-        return self.makeRequest('GET','put', ticket=ticket, ttl=ttl or None, auth_type=auth_types or None, finalize=finalize)
+    def putTicket(self, ticket, ttl=None, auth_types=(), finalize=None):
+        result = self.makeRequest('GET','put', ticket=ticket, ttl=ttl or None, auth_type=self.makeAuthTypeString(auth_types) or None, finalize=finalize)
+        return {'ticket' : result['data'], 'ttl' : result['ttl']}
 
     def readData(self, ticket, container='', finalize=None):
         return self.makeRequest('GET','read', ticket=ticket, container=container or None, finalize=finalize)
