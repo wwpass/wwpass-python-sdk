@@ -48,13 +48,12 @@ class WWPassConnection(object):
             if method == 'GET':
                 res = urlopen(self.spfe_addr +'/'+command+'?'+urlencode(params), context=self.context, timeout=self.timeout)
             else:
-                res = urlopen(self.spfe_addr +'/'+command, data=urlencode(params), context=self.context, timeout=self.timeout)
+                res = urlopen(self.spfe_addr +'/'+command, data=urlencode(params).encode('UTF-8'), context=self.context, timeout=self.timeout)
             res = pickle.loads(res.read())
             if not res['result']:
                 if 'code'in res:
                     raise Exception('SPFE returned error: %s: %s' %(res['code'], res['data']))
                 raise Exception('SPFE returned error: %s' % res['data'])
-            res = {k:v.decode('UTF-8') if isinstance(v, bytes) else v for k, v in res.items()}
             return res
 
         except (URLError, IOError) as e:
@@ -63,8 +62,6 @@ class WWPassConnection(object):
                 return self.makeRequest(method, command, attempts,**params)
             else:
                 raise
-        except Exception as e:
-            return False, str(e)
 
     def makeAuthTypeString(self, auth_types):
         auth_type_str = ''
