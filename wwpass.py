@@ -43,22 +43,8 @@ class WWPassConnection(object):
         self.timeout = timeout
 
     def makeRequest(self, method, command, attempts=3,**paramsDict):
-        #params = {k:v.encode('UTF-8') if isinstance(v,unicode) else v for k, v in paramsDict.iteritems() if v != None}
         params = {k:v.encode('UTF-8') if not isinstance(v,(bytes, int)) else v for k, v in paramsDict.items() if v != None}
         try:
-            if method == 'GET':
-                self.conn.setopt(p.HTTPGET, 1)
-                self.conn.setopt(p.URL, self.spfe_addr + '/'+command+'?'+urllib.urlencode(params))
-            else:
-                self.conn.setopt(p.POST, 1)
-                self.conn.setopt(p.URL, self.spfe_addr + '/'+command)
-                data = urllib.urlencode(params)
-                self.conn.setopt(p.POSTFIELDS, data)
-            b = StringIO.StringIO()
-            self.conn.setopt(p.WRITEFUNCTION, b.write)
-            self.conn.perform()
-            res = pickle.loads(b.getvalue())
-            return res['result'],res['data']
             if method == 'GET':
                 res = urlopen(self.spfe_addr +'/'+command+'?'+urlencode(params), context=self.context, timeout=self.timeout)
             else:
