@@ -29,7 +29,7 @@ except ImportError:
     from urllib2 import urlopen
     from urllib import urlencode
 
-DEFAULT_CADATA = '''-----BEGIN CERTIFICATE-----
+DEFAULT_CADATA = u'''-----BEGIN CERTIFICATE-----
 MIIGATCCA+mgAwIBAgIJAN7JZUlglGn4MA0GCSqGSIb3DQEBCwUAMFcxCzAJBgNV
 BAYTAlVTMRswGQYDVQQKExJXV1Bhc3MgQ29ycG9yYXRpb24xKzApBgNVBAMTIldX
 UGFzcyBDb3Jwb3JhdGlvbiBQcmltYXJ5IFJvb3QgQ0EwIhgPMjAxMjExMjgwOTAw
