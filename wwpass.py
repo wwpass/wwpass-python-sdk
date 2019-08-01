@@ -26,7 +26,7 @@ try:
     from urllib.error import URLError
 except ImportError:
     # python2
-    from urllib2 import urlopen
+    from urllib2 import urlopen, URLError
     from urllib import urlencode
 
 DEFAULT_CADATA = u'''-----BEGIN CERTIFICATE-----
@@ -94,7 +94,7 @@ class WWPassConnection(object):
                 raise Exception('SPFE returned error: %s' % res['data'])
             return res
 
-        except (URLError, IOError) as e:
+        except URLError as e:
             if attempts>0:
                 attempts -= 1
             else:
@@ -102,14 +102,8 @@ class WWPassConnection(object):
         return self.makeRequest(method, command, attempts,**params)
 
     def makeAuthTypeString(self, auth_types):
-        auth_type_str = ''
-        if PIN in auth_types:
-            auth_type_str += 'p'
-        if SESSION_KEY in auth_types:
-            auth_type_str += 's'
-        if CLIENT_KEY in  auth_types:
-            auth_type_str += 'c'
-        return auth_type_str
+        valid_auth_types = (PIN, SESSION_KEY, CLIENT_KEY)
+        return ''.join(x for x in auth_types if x in valid_auth_types)
 
     def getName(self):
         ticket = self.getTicket(ttl=0)['ticket']
