@@ -17,7 +17,6 @@ __date__ ="$27.11.2014 18:05:15$"
 # limitations under the License.
 
 import pickle
-#import StringIO
 from threading import Lock
 import ssl
 try:
@@ -101,11 +100,11 @@ class WWPassConnection(object):
         return {'data' : result['data']}
 
     def writeData(self, ticket, data, container='', finalize=None):
-        self.makeRequest('POST','write', ticket=ticket, data = data, container=container or None, finalize=finalize)
+        self.makeRequest('POST','write', ticket=ticket, data=data, container=container or None, finalize=finalize)
         return True
 
     def writeDataAndUnlock(self, ticket, data, container='', finalize=None):
-        self.makeRequest('POST','write', ticket=ticket, data = data, container=container or None, unlock="1", finalize=finalize)
+        self.makeRequest('POST','write', ticket=ticket, data=data, container=container or None, unlock="1", finalize=finalize)
         return True
 
     def lock(self, ticket, lockTimeout, lockid):
