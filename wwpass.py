@@ -77,11 +77,11 @@ class WWPassConnection(object):
             self.context.load_verify_locations(cadata=DEFAULT_CADATA)
         else:
             self.context.load_verify_locations(cafile=cafile)
-        self.spfe_addr = "https://%s"%spfe_addr if spfe_addr.find('://') == -1 else spfe_addr
+        self.spfe_addr = 'https://%s' % spfe_addr if spfe_addr.find('://') == -1 else spfe_addr
         self.timeout = timeout
 
     def makeRequest(self, method, command, attempts=3,**paramsDict):
-        params = {k:v.encode('UTF-8') if not isinstance(v,(bytes, int)) else v for k, v in paramsDict.items() if v != None}
+        params = {k:v.encode('UTF-8') if not isinstance(v,(bytes, int)) else v for k, v in paramsDict.items() if v is not None}
         try:
             if method == 'GET':
                 res = urlopen(self.spfe_addr +'/'+command+'?'+urlencode(params), context=self.context, timeout=self.timeout)
@@ -97,9 +97,9 @@ class WWPassConnection(object):
         except (URLError, IOError) as e:
             if attempts>0:
                 attempts -= 1
-                return self.makeRequest(method, command, attempts,**params)
             else:
                 raise
+        return self.makeRequest(method, command, attempts,**params)
 
     def makeAuthTypeString(self, auth_types):
         auth_type_str = ''
@@ -231,7 +231,7 @@ class WWPassConnectionMT(WWPassConnection):
             conn = self.getConnection()
             return conn.makeRequest(method, command, attempts, **paramsDict)
         finally:
-            if conn != None:
+            if conn is not None:
                 conn.lock.release()
 
 WWPASSConnection = WWPassConnection
