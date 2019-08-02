@@ -69,7 +69,7 @@ PIN = 'p'
 SESSION_KEY = 's'
 CLIENT_KEY = 'c'
 
-class WWPAssException(IOException):
+class WWPAssException(IOError):
     pass
 
 class WWPassConnection(object):
