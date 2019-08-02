@@ -69,6 +69,9 @@ PIN = 'p'
 SESSION_KEY = 's'
 CLIENT_KEY = 'c'
 
+class WWPAssException(IOException):
+    pass
+
 class WWPassConnection(object):
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', cafile=None):
         self.context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
@@ -90,8 +93,8 @@ class WWPassConnection(object):
             res = pickle.loads(res.read())
             if not res['result']:
                 if 'code'in res:
-                    raise Exception('SPFE returned error: %s: %s' %(res['code'], res['data']))
-                raise Exception('SPFE returned error: %s' % res['data'])
+                    raise WWPAssException('SPFE returned error: %s: %s' %(res['code'], res['data']))
+                raise WWPAssException('SPFE returned error: %s' % res['data'])
             return res
 
         except URLError as e:
@@ -109,8 +112,8 @@ class WWPassConnection(object):
         ticket = self.getTicket(ttl=0)['ticket']
         pos = ticket.find(':')
         if pos == -1:
-            return False, "SPFE returned ticket without a colon"
-        return True, ticket[:pos]
+            raise WWPAssException('Cannot extract service provider name from ticket.')
+        return ticket[:pos]
 
     def getTicket(self, ttl=None, auth_types=()):
         result = self.makeRequest('GET','get', ttl=ttl or None, auth_type=self.makeAuthTypeString(auth_types) or None)
