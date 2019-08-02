@@ -175,7 +175,7 @@ class WWPassConnection(object):
         return self.makeRequest('GET','sp/unlock',lockid=lockid)
 
 class WWPassConnectionMT(WWPassConnection):
-    def __init__(self, key_file, cert_file, timeout=10, spfe_addr='spfe.wwpass.com', ca_file=None, initial_connections=2):
+    def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', ca_file=None, initial_connections=2):
         self.Pool = []
         self.key_file = key_file
         self.cert_file = cert_file
