@@ -86,7 +86,7 @@ Calls to this function get the SP name on the certificate which was used for ini
 
 #### getTicket()
 ##### Declaration
-    WWPassConnection.getTicket(ttl=None, auth_types = '')
+    WWPassConnection.getTicket(ttl=None, auth_types=())
 ##### Purpose
 Calls to this function get a newly-issued ticket from SPFE.
 ##### Parameters
@@ -100,7 +100,7 @@ Calls to this function get a newly-issued ticket from SPFE.
 
 #### getPUID()
 #### Declaration
-    WWPassConnection.getPUID(ticket, auth_types='', finalize=None)
+    WWPassConnection.getPUID(ticket, auth_types=(), finalize=None)
 ##### Purpose
 *WWPassConnection.getPUID* gets the id of the user from the Service Provider Front End. This ID is unique for each Service Provider.
 ##### Parameters
@@ -115,7 +115,7 @@ Calls to this function get a newly-issued ticket from SPFE.
 
 #### putTicket()
 ##### Declaration
-    WWPassConnection.putTicket(ticket, ttl=None, auth_types = '', finalize=None)
+    WWPassConnection.putTicket(ticket, ttl=None, auth_types=(), finalize=None)
 ##### Purpose
 A call to this function checks the authentication of the ticket and may issue a new ticket from SPFE.  All subsequent operations should use a returned ticket instead of one provided to *putTicket*.
 ##### Parameters
