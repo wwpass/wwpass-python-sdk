@@ -2,7 +2,7 @@
 __author__="Rostislav Kondratenko <r.kondratenko@wwpass.com>"
 __date__ ="$27.11.2014 18:05:15$"
 
-# Copyright 2009-2016 WWPASS Corporation
+# Copyright 2009-2019 WWPASS Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -128,54 +128,76 @@ class WWPassConnection(object):
         return {'ticket' : result['data'], 'ttl' : result['ttl']}
 
     def readData(self, ticket, container='', finalize=None):
-        return self.makeRequest('GET','read', ticket=ticket, container=container or None, finalize=finalize)
+        result = self.makeRequest('GET','read', ticket=ticket, container=container or None, finalize=finalize)
+        return {'data' : result['data']}
 
     def readDataAndLock(self, ticket, lockTimeout, container=''):
-        return self.makeRequest('GET','read', ticket=ticket, container=container or None, lock="1", to=lockTimeout)
+        result = self.makeRequest('GET','read', ticket=ticket, container=container or None, lock='1', to=lockTimeout)
+        return {'data' : result['data']}
+
 
     def writeData(self, ticket, data, container='', finalize=None):
         self.makeRequest('POST','write', ticket=ticket, data=data, container=container or None, finalize=finalize)
         return True
 
     def writeDataAndUnlock(self, ticket, data, container='', finalize=None):
-        self.makeRequest('POST','write', ticket=ticket, data=data, container=container or None, unlock="1", finalize=finalize)
+        self.makeRequest('POST','write', ticket=ticket, data=data, container=container or None, unlock='1', finalize=finalize)
         return True
 
     def lock(self, ticket, lockTimeout, lockid):
-        return self.makeRequest('GET','lock',ticket=ticket, lockid=lockid, to=lockTimeout)
+        self.makeRequest('GET','lock',ticket=ticket, lockid=lockid, to=lockTimeout)
+        return True
 
     def unlock(self, ticket, lockid, finalize=None):
-        return self.makeRequest('GET','unlock', ticket=ticket, lockid=lockid, finalize=finalize)
+        self.makeRequest('GET','unlock', ticket=ticket, lockid=lockid, finalize=finalize)
+        return True
 
     def getSessionKey(self, ticket, finalize=None):
-        return self.makeRequest('GET','key', ticket=ticket, finalize=finalize)
+        result = self.makeRequest('GET','key', ticket=ticket, finalize=finalize)
+        return {'sessionKey' : result['data']}
 
     def createPFID(self, data=''):
         if data:
-            return self.makeRequest('POST','sp/create', data=data)
+            result =  self.makeRequest('POST','sp/create', data=data)
         else:
-            return self.makeRequest('GET','sp/create')
+            result =  self.makeRequest('GET','sp/create')
+        return {'pfid' : result['data']}
 
     def removePFID(self, pfid):
-        return self.makeRequest('POST','sp/remove', pfid=pfid)
+        self.makeRequest('POST','sp/remove', pfid=pfid)
+        return True
 
     def readDataSP(self, pfid):
-        return self.makeRequest('GET','sp/read', pfid=pfid)
+        result =  self.makeRequest('GET','sp/read', pfid=pfid)
+        return {'data' : result['data']}
 
     def readDataSPandLock(self, pfid, lockTimeout):
-        return self.makeRequest('GET','sp/read', pfid=pfid, to=lockTimeout, lock=1)
+        result =  self.makeRequest('GET','sp/read', pfid=pfid, to=lockTimeout, lock=1)
+        return {'data' : result['data']}
 
     def writeDataSP(self, pfid, data):
-        return self.makeRequest('POST','sp/write', pfid=pfid, data=data)
+        self.makeRequest('POST','sp/write', pfid=pfid, data=data)
+        return True
 
     def writeDataSPandUnlock(self, pfid, data):
-        return self.makeRequest('POST','sp/write', pfid=pfid, data=data, unlock=1)
+        self.makeRequest('POST','sp/write', pfid=pfid, data=data, unlock=1)
+        return True
 
     def lockSP(self, lockid, lockTimeout):
-        return self.makeRequest('GET','sp/lock',lockid=lockid, to=lockTimeout)
+        self.makeRequest('GET','sp/lock',lockid=lockid, to=lockTimeout)
+        return True
 
     def unlockSP(self, lockid):
-        return self.makeRequest('GET','sp/unlock',lockid=lockid)
+        self.makeRequest('GET','sp/unlock',lockid=lockid)
+        return True
+
+    def getClientKey(self, ticket):
+        result =  self.makeRequest('GET','clientkey',ticket=ticket)
+        res_dict = {'clientKey' : result['data'], 'ttl' : result['ttl']}
+        if 'originalTicket' in result:
+            res_dict['originalTicket'] = result['originalTicket']
+        return res_dict
+
 
 class WWPassConnectionMT(WWPassConnection):
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', ca_file=None, initial_connections=2):
