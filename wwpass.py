@@ -198,7 +198,6 @@ class WWPassConnection(object):
             res_dict['originalTicket'] = result['originalTicket']
         return res_dict
 
-
 class WWPassConnectionMT(WWPassConnection):
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', ca_file=None, initial_connections=2):
         self.Pool = []
