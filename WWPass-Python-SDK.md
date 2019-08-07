@@ -94,7 +94,7 @@ Calls to this function get a newly-issued ticket from SPFE.
 | Name | Description |
 | ------- | -------------- |
 | ttl |The period in seconds for the ticket to remain valid since issuance. The default is 600 seconds. |
-| auth_types | Defines which credentials will be asked of the user to authenticate this ticket. The values may be a list with any combination of following constatnts: WWPassConnection::PIN — to ask for PassKey and access code; WWPassConnection::SESSION_KEY — to generate cryptographically secure random number that would be available both to client and Service Provider; WWPassConnection::CLIENT_KEY — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty array to ask for PassKey only (default). |
+| auth_types | Defines which credentials will be asked of the user to authenticate this ticket. The values may be a list with any combination of following constatnts: PIN — to ask for PassKey and access code; SESSION_KEY — to generate cryptographically secure random number that would be available both to client and Service Provider; CLIENT_KEY — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty array to ask for PassKey only (default). |
 ##### Returns
 `{"ticket" : <Ticket issued by the SPFE>, "ttl" : <ticket's time-to-live in seconds>}`
 ##### Throws
@@ -109,7 +109,7 @@ Calls to this function get a newly-issued ticket from SPFE.
 | Name | Description |
 | ------- | -------------- |
 | ticket | The authenticated ticket. |
-| auth_types | Defines which credentials will be asked of the user to authenticate this ticket. The values may be a list with any combination of following constatnts: WWPassConnection::PIN — to ask for PassKey and access code; WWPassConnection::SESSION_KEY — to generate cryptographically secure random number that would be available both to client and Service Provider; WWPassConnection::CLIENT_KEY — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty array to ask for PassKey only (default). |
+| auth_types | Defines which credentials will be asked of the user to authenticate this ticket. The values may be a list with any combination of following constatnts: PIN — to ask for PassKey and access code; SESSION_KEY — to generate cryptographically secure random number that would be available both to client and Service Provider; CLIENT_KEY — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty array to ask for PassKey only (default). |
 |finalize | Set to True value to close the ticket after this operation is finished. |
 ##### Returns
 `{"puid" : <PUID>}`
@@ -126,7 +126,7 @@ A call to this function checks the authentication of the ticket and may issue a 
 | ------- | -------------- |
 | ticket | The ticket to validate. |
 | ttl | The period in seconds for the ticket to remain valid since issuance. The default is 600 seconds. |
-| auth_types | Defines which credentials will be asked of the user to authenticate this ticket. The values may be a list with any combination of following constatnts: WWPassConnection::PIN — to ask for PassKey and access code; WWPassConnection::SESSION_KEY — to generate cryptographically secure random number that would be available both to client and Service Provider; WWPassConnection::CLIENT_KEY — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty array to ask for PassKey only (default). |
+| auth_types | Defines which credentials will be asked of the user to authenticate this ticket. The values may be a list with any combination of following constatnts: PIN — to ask for PassKey and access code; SESSION_KEY — to generate cryptographically secure random number that would be available both to client and Service Provider; CLIENT_KEY — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty array to ask for PassKey only (default). |
 | finalize | Set to True value to invalidate the ticket after this operation is finished. |
 ##### Returns
 `{"ticket" : <original or newly-issued ticket>, "ttl" : <ticket's time-to-live in seconds>}`
