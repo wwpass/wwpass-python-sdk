@@ -144,7 +144,7 @@ Calls to this function request data stored in the user’s data container.
 | Name | Description |
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
-| container | Arbitrary string (only the first 32 bytes are significant) identifying the user’s data container. |
+| container | Arbitrary bytes object, limited by 16 bytes, identifying the user’s data container. |
 | finalize | Set to True value to invalidate the ticket after this operation is finished. |
 ##### Returns
 `{"data": <data>}` or
@@ -163,7 +163,7 @@ Calls to this function request data stored in the user’s data container and lo
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
 | lockTimeout | The period in seconds for the data container to remain protected from the new data being accessed. |
-| container | Arbitrary string (only the first 32 bytes are significant) identifying the user’s data container. |
+| container | Arbitrary bytes object, limited by 16 bytes, identifying the user’s data container. |
 ##### Returns
 `{"data": <data>}` or
 `{"data": None}` if the container was never written to.
@@ -180,7 +180,7 @@ Calls to this function write data into the user’s data container.
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
 | data | The string to write into the container. |
-| container | Arbitrary string (only the first 32 bytes are significant) identifying the user’s data container. |
+| container | Arbitrary bytes object, limited by 16 bytes, identifying the user’s data container. |
 | finalize | Set to True value to close the ticket after this operation is finished. |
 ##### Returns
 `True`
@@ -197,7 +197,7 @@ A call to this function writes data into the user's data container and unlocks a
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
 | data | The string to write into the container. |
-| container | Arbitrary string (only the first 32 bytes are significant) identifying the user’s data container. |
+| container | Arbitrary bytes object, limited by 16 bytes, identifying the user’s data container. |
 | finalize | Set to True value to close the ticket after this operation is finished. |
 ##### Returns
 `True`
@@ -215,7 +215,7 @@ Calls to this function locks an advisory lock widentified by the user (by authen
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
 | lockTimeout | The period in seconds for the data container to remain protected from the new data being accessed. |
-| lockid | The arbitrary string (only the first 32 bytes are significant) identifying the lock. |
+| lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
 ##### Returns
 `True`
 ##### Throws
@@ -231,7 +231,7 @@ Calls to this function unlocks an advisory lock widentified by the user (by auth
 | Name | Description |
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
-| lockid | The arbitrary string (only the first 32 bytes are significant) identifying the lock. |
+| lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
 | finalize | Set to True value to close the ticket after this operation is finished. |
 ##### Returns
 `True`
@@ -367,7 +367,7 @@ A call to this function tries to lock a lock identified by lockid.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
-| lockid | The arbitrary string (only the first 32 bytes are significant) identifying the lock. |
+| lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
 | lockTimeout | The period in seconds for the SP data to remain protected from the new data being accessed. |
 ##### Returns
 `True`
@@ -382,7 +382,7 @@ A call to this function tries to unlock a lock identified by lockid.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
-| lockid | The arbitrary string (only the first 32 bytes are significant) identifying the lock. |
+| lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
 ##### Returns
 `True`
 ##### Throws
