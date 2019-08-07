@@ -242,11 +242,11 @@ Calls to this function unlocks an advisory lock widentified by the user (by auth
 ##### Declaration
     WWPassConnection.getSessionKey(ticket, finalize=None)
 ##### Purpose
-*WWPassConnection. getSessionKey* return cryptographically secure random number generated for the authentication transaction that is identified by ticket. This value can be used do derive cryptographic keys that will secure communication between client and Service Provider. Note that this key will be available only if the ticket was generated with 's' auth type.
+*WWPassConnection. getSessionKey* return cryptographically secure random number generated for the authentication transaction that is identified by ticket. This value can be used do derive cryptographic keys that will secure communication between client and Service Provider. Note that this key will be available only if the ticket was generated with SESSION_KEY auth type.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
-| ticket | The authenticated ticket that was generated with 's' auth type. |
+| ticket | The authenticated ticket that was generated with SESSION_KEY auth type. |
 | finalize | Set to True value to close the ticket after this operation is finished. |
 ##### Returns
 `{"sessionkey" : <SessionKey>}`
