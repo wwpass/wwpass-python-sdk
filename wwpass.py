@@ -127,20 +127,20 @@ class WWPassConnection(object):
         result = self.makeRequest('GET','put', ticket=ticket, ttl=ttl or None, auth_type=self.makeAuthTypeString(auth_types) or None, finalize=finalize)
         return {'ticket' : result['data'], 'ttl' : result['ttl']}
 
-    def readData(self, ticket, container='', finalize=None):
+    def readData(self, ticket, container=b'', finalize=None):
         result = self.makeRequest('GET','read', ticket=ticket, container=container or None, finalize=finalize)
         return {'data' : result['data']}
 
-    def readDataAndLock(self, ticket, lockTimeout, container=''):
+    def readDataAndLock(self, ticket, lockTimeout, container=b''):
         result = self.makeRequest('GET','read', ticket=ticket, container=container or None, lock='1', to=lockTimeout)
         return {'data' : result['data']}
 
 
-    def writeData(self, ticket, data, container='', finalize=None):
+    def writeData(self, ticket, data, container=b'', finalize=None):
         self.makeRequest('POST','write', ticket=ticket, data=data, container=container or None, finalize=finalize)
         return True
 
-    def writeDataAndUnlock(self, ticket, data, container='', finalize=None):
+    def writeDataAndUnlock(self, ticket, data, container=b'', finalize=None):
         self.makeRequest('POST','write', ticket=ticket, data=data, container=container or None, unlock='1', finalize=finalize)
         return True
 
