@@ -258,7 +258,7 @@ Calls to this function unlocks an advisory lock widentified by the user (by auth
     WWPassConnection.getClientKey(ticket)
 ##### Purpose
 This function retrieves cryptographic key, specific to user-applicalation pair, in encrypted form. That key is encrypted by one-time random key that must never leave client system. The encrypted form, retrieved by this function can only be decrypted at the client system.
-This function is only used when WWPass client-side cryptogpahy is implemented by the application.
+This function is only used when WWPass client-side cryptography is implemented by the application.
 
 ##### Parameters
 | Name | Description |
