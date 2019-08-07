@@ -137,7 +137,7 @@ The new ticket should be used in further operations with the SPFE.  
 
 #### readData()
 ##### Declaration
-    WWPassConnection.readData(ticket, container='', finalize=None)
+    WWPassConnection.readData(ticket, container=b'', finalize=None)
 ##### Purpose
 Calls to this function request data stored in the user’s data container.
 ##### Parameters
@@ -154,7 +154,7 @@ Calls to this function request data stored in the user’s data container.
 
 #### readDataAndLock()
 ##### Declaration
-    WWPassConnection.readDataAndLock(ticket, lockTimeout, container='')
+    WWPassConnection.readDataAndLock(ticket, lockTimeout, container=b'')
 ##### Purpose
 Calls to this function request data stored in the user’s data container and locks an advisory lock with the same name as the name of the data container.  Each WWPass lock has a name or “lock id.”  This function operates locks with the same name as the pertinent data container.
 **Note:** The lock does not lock the data container.  It locks only itself, a common behavior to locks/flags/semaphores in other languages/APIs – so-called “advisory locks.”
@@ -172,7 +172,7 @@ Calls to this function request data stored in the user’s data container and lo
 
 #### writeData()
 ##### Declaration
-    WWPassConnection.writeData(ticket, data, container='', finalize=None)
+    WWPassConnection.writeData(ticket, data, container=b'', finalize=None)
 ##### Purpose
 Calls to this function write data into the user’s data container.
 ##### Parameters
@@ -189,7 +189,7 @@ Calls to this function write data into the user’s data container.
 
 #### writeDataAndUnlock()
 ##### Declaration
-    WWPassConnection.writeDataAndUnlock(ticket, data, container='', finalize=None)
+    WWPassConnection.writeDataAndUnlock(ticket, data, container=b'', finalize=None)
 ##### Purpose
 A call to this function writes data into the user's data container and unlocks an associated lock. If the lock is already unlocked, the write will succeed, but the function will return an appropriate error.
 ##### Parameters
