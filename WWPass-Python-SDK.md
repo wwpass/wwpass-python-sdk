@@ -129,7 +129,7 @@ A call to this function checks the authentication of the ticket and may issue a 
 | auth_types | Defines which credentials will be asked of the user to authenticate this ticket. The values may be a sequence with any combination of following constatnts: PIN — to ask for PassKey and access code; SESSION_KEY — to generate cryptographically secure random number that would be available both to client and Service Provider; CLIENT_KEY — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty sequence to ask for PassKey only (default). |
 | finalize | Set to True value to invalidate the ticket after this operation is finished. |
 ##### Returns
-`{"ticket" : <original or newly-issued ticket>, "ttl" : <ticket's time-to-live in seconds>}`
+`{"ticket" : <newly-issued ticket>, "ttl" : <ticket's time-to-live in seconds>}`
 ##### Throws
 *WWPassException*
 
