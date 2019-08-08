@@ -206,9 +206,9 @@ A call to this function writes data into the user's data container and unlocks a
 
 #### lock()
 ##### Declaration
-    WWPassConnection.lock(ticket, lockTimeout, lockid='')
+    WWPassConnection.lock(ticket, lockTimeout, lockid=b'')
 ##### Purpose
-Calls to this function locks an advisory lock widentified by the user (by authenticated ticket) and lock ID.
+Calls to this function locks an advisory lock identified by the user (by authenticated ticket) and lock ID.
 **Note:** The lock does not lock any data container.  It locks only itself, a common behavior to locks/flags/semaphores in other languages/APIs – so-called “advisory locks.”
 ##### Parameters
 | Name | Description |
@@ -223,9 +223,9 @@ Calls to this function locks an advisory lock widentified by the user (by authen
 
 #### unlock()
 ##### Declaration
-    WWPassConnection.unlock(ticket, lockid='', finalize=None)
+    WWPassConnection.unlock(ticket, lockid=b'', finalize=None)
 ##### Purpose
-Calls to this function unlocks an advisory lock widentified by the user (by authenticated ticket) and lock ID.
+Calls to this function unlocks an advisory lock identified by the user (by authenticated ticket) and lock ID.
 **Note:** The lock does not lock any data container.  It locks only itself, a common behavior to locks/flags/semaphores in other languages/APIs – so-called “advisory locks.”
 ##### Parameters
 | Name | Description |
