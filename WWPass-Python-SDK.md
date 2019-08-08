@@ -288,7 +288,7 @@ A call to this function creates a new SP-only container with a unique name and r
 ##### Declaration
     WWPassConnection.removePFID(pfid)
 ##### Purpose
-Destroys the SP-specific data container.  The container will then become non-existent as if it were never created.
+Destroys the SP-specific data container.  The container will then become non-existent as if it was never created.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
