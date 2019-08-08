@@ -162,7 +162,7 @@ Calls to this function request data stored in the user’s data container and lo
 | Name | Description |
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
-| lockTimeout | The period in seconds for the data container to remain protected from the new data being accessed. |
+| lockTimeout | The period in seconds for the data container to remain protected from the new lock being acquired |
 | container | Arbitrary bytes object, limited by 16 bytes, identifying the user’s data container. |
 ##### Returns
 `{"data": <data>}` or
@@ -214,7 +214,7 @@ Calls to this function locks an advisory lock widentified by the user (by authen
 | Name | Description |
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
-| lockTimeout | The period in seconds for the data container to remain protected from the new data being accessed. |
+| lockTimeout | The period in seconds for the data container to remain protected from the new lock being acquired |
 | lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
 ##### Returns
 `True`
@@ -368,7 +368,7 @@ A call to this function tries to lock a lock identified by lockid.
 | Name | Description |
 | ------- | -------------- |
 | lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
-| lockTimeout | The period in seconds for the SP data to remain protected from the new data being accessed. |
+| lockTimeout | The period in seconds for the data container to remain protected from the new lock being acquired |
 ##### Returns
 `True`
 ##### Throws
