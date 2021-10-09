@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 __author__="Rostislav Kondratenko <r.kondratenko@wwpass.com>"
 __date__ ="$27.11.2014 18:05:15$"
 
@@ -19,17 +18,12 @@ __date__ ="$27.11.2014 18:05:15$"
 import pickle
 from threading import Lock
 import ssl
-try:
-    # python3
-    from urllib.request import urlopen
-    from urllib.parse import urlencode
-    from urllib.error import URLError
-except ImportError:
-    # python2
-    from urllib2 import urlopen, URLError
-    from urllib import urlencode
 
-DEFAULT_CADATA = u'''-----BEGIN CERTIFICATE-----
+from urllib.parse import urlencode
+from urllib.request import urlopen
+from urllib.error import URLError
+
+DEFAULT_CADATA = '''-----BEGIN CERTIFICATE-----
 MIIGATCCA+mgAwIBAgIJAN7JZUlglGn4MA0GCSqGSIb3DQEBCwUAMFcxCzAJBgNV
 BAYTAlVTMRswGQYDVQQKExJXV1Bhc3MgQ29ycG9yYXRpb24xKzApBgNVBAMTIldX
 UGFzcyBDb3Jwb3JhdGlvbiBQcmltYXJ5IFJvb3QgQ0EwIhgPMjAxMjExMjgwOTAw
@@ -72,7 +66,7 @@ CLIENT_KEY = 'c'
 class WWPassException(IOError):
     pass
 
-class WWPassConnection(object):
+class WWPassConnection():
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', cafile=None):
         self.context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
         self.context.load_cert_chain(certfile=cert_file, keyfile=key_file)
@@ -206,7 +200,7 @@ class WWPassConnectionMT(WWPassConnection):
         self.ca_file = ca_file
         self.timeout = timeout
         self.spfe_addr = spfe_addr
-        for _ in xrange(initial_connections):
+        for _ in range(initial_connections):
             self.addConnection()
 
     def addConnection(self, acquired = False):
