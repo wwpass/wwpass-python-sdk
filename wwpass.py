@@ -74,21 +74,21 @@ class WWPassConnection():
             self.context.load_verify_locations(cadata = DEFAULT_CADATA)
         else:
             self.context.load_verify_locations(cafile = cafile)
-        self.spfe_addr = 'https://%s' % spfe_addr if spfe_addr.find('://') == -1 else spfe_addr
+        self.spfe_addr = f'https://{spfe_addr}' if spfe_addr.find('://') == -1 else spfe_addr
         self.timeout = timeout
 
     def makeRequest(self, method, command, attempts = 3,**paramsDict):
         params = { k: v.encode('UTF-8') if not isinstance(v, (bytes, int)) else v for (k, v) in paramsDict.items() if v is not None }
         try:
             if method == 'GET':
-                res = urlopen(self.spfe_addr + '/' + command + '?' + urlencode(params), context = self.context, timeout = self.timeout)
+                res = urlopen(f'{self.spfe_addr}/{command}?{urlencode(params)}', context = self.context, timeout = self.timeout)
             else:
-                res = urlopen(self.spfe_addr + '/' + command, data = urlencode(params).encode('UTF-8'), context = self.context, timeout = self.timeout)
+                res = urlopen(f'{self.spfe_addr}/{command}', data = urlencode(params).encode('UTF-8'), context = self.context, timeout = self.timeout)
             res = pickleLoads(res.read())
             if not res['result']:
                 if 'code'in res:
-                    raise WWPassException("SPFE returned error: %s: %s" % (res['code'], res['data']))
-                raise WWPassException("SPFE returned error: %s" % res['data'])
+                    raise WWPassException(f"SPFE returned error: {res['code']}: {res['data']}")
+                raise WWPassException(f"SPFE returned error: {res['data']}")
             return res
         except URLError as e:
             if attempts > 0:
