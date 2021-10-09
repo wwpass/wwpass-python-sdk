@@ -97,7 +97,8 @@ class WWPassConnection():
                 raise
         return self.makeRequest(method, command, attempts, **params)
 
-    def makeAuthTypeString(self, auth_types):
+    @staticmethod
+    def makeAuthTypeString(auth_types):
         valid_auth_types = (PIN, SESSION_KEY, CLIENT_KEY)
         return ''.join(x for x in auth_types if x in valid_auth_types)
 
