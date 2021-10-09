@@ -16,7 +16,7 @@ __date__ ="$27.11.2014 18:05:15$"
 # limitations under the License.
 
 from pickle import loads as pickleLoads
-from ssl import SSLContext, PROTOCOL_TLS
+from ssl import SSLContext, PROTOCOL_TLSv1_2
 from threading import Lock
 
 from urllib.parse import urlencode
@@ -68,7 +68,7 @@ class WWPassException(IOError):
 
 class WWPassConnection():
     def __init__(self, key_file, cert_file, timeout = 10, spfe_addr = 'https://spfe.wwpass.com', cafile = None):
-        self.context = SSLContext(protocol = PROTOCOL_TLS)
+        self.context = SSLContext(protocol = PROTOCOL_TLSv1_2)
         self.context.load_cert_chain(certfile = cert_file, keyfile = key_file)
         if cafile is None:
             self.context.load_verify_locations(cadata = DEFAULT_CADATA)
