@@ -80,17 +80,17 @@ class WWPassConnection():
     def makeRequest(self, method, command, attempts = 3,**paramsDict):
         params = { k: v.encode('UTF-8') if not isinstance(v, (bytes, int)) else v for (k, v) in paramsDict.items() if v is not None }
         try:
-            if method == 'GET':
+            if method == 'GET': # pylint: disable=consider-ternary-expression
                 res = urlopen(f'{self.spfe_addr}/{command}?{urlencode(params)}', context = self.context, timeout = self.timeout)
             else:
-                res = urlopen(f'{self.spfe_addr}/{command}', data = urlencode(params).encode('UTF-8'), context = self.context, timeout = self.timeout)
+                res = urlopen(f'{self.spfe_addr}/{command}', data = urlencode(params).encode('UTF-8'), context = self.context, timeout = self.timeout) # pylint: disable=consider-using-with
             res = pickleLoads(res.read())
             if not res['result']:
                 if 'code'in res:
                     raise WWPassException(f"SPFE returned error: {res['code']}: {res['data']}")
                 raise WWPassException(f"SPFE returned error: {res['data']}")
             return res
-        except URLError as e:
+        except URLError:
             if attempts > 0:
                 attempts -= 1
             else:
@@ -149,10 +149,8 @@ class WWPassConnection():
         return {'sessionKey': result['data']}
 
     def createPFID(self, data = ''):
-        if data:
-            result = self.makeRequest('POST', 'sp/create', data = data)
-        else:
-            result = self.makeRequest('GET', 'sp/create')
+        result = self.makeRequest('POST', 'sp/create', data = data) if data \
+            else self.makeRequest('GET', 'sp/create')
         return {'pfid': result['data']}
 
     def removePFID(self, pfid):
@@ -191,7 +189,7 @@ class WWPassConnection():
         return res_dict
 
 class WWPassConnectionMT(WWPassConnection):
-    def __init__(self, key_file, cert_file, timeout = 10, spfe_addr = 'https://spfe.wwpass.com', ca_file = None, initial_connections = 2):
+    def __init__(self, key_file, cert_file, timeout = 10, spfe_addr = 'https://spfe.wwpass.com', ca_file = None, initial_connections = 2): # pylint: disable=super-init-not-called
         self.Pool = []
         self.key_file = key_file
         self.cert_file = cert_file
@@ -205,7 +203,7 @@ class WWPassConnectionMT(WWPassConnection):
         c = WWPassConnection(self.key_file, self.cert_file, self.timeout, self.spfe_addr, self.ca_file)
         c.lock = Lock()
         if acquired:
-            c.lock.acquire()
+            c.lock.acquire() # pylint: disable=consider-using-with
         self.Pool.append(c)
         return c
 
