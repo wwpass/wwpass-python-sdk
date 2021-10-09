@@ -76,6 +76,7 @@ class WWPassConnection():
             self.context.load_verify_locations(cafile = cafile)
         self.spfe_addr = f'https://{spfe_addr}' if spfe_addr.find('://') == -1 else spfe_addr
         self.timeout = timeout
+        self.connectionLock: Lock
 
     def makeRequest(self, method, command, attempts = 3,**paramsDict):
         params = { k: v.encode('UTF-8') if not isinstance(v, (bytes, int)) else v for (k, v) in paramsDict.items() if v is not None }
@@ -201,14 +202,14 @@ class WWPassConnectionMT(WWPassConnection):
 
     def addConnection(self, acquired = False):
         c = WWPassConnection(self.key_file, self.cert_file, self.timeout, self.spfe_addr, self.ca_file)
-        c.lock = Lock()
+        c.connectionLock = Lock()
         if acquired:
-            c.lock.acquire() # pylint: disable=consider-using-with
+            c.connectionLock.acquire()
         self.Pool.append(c)
         return c
 
     def getConnection(self):
-        for conn in (c for c in self.Pool if c.lock.acquire(False)):
+        for conn in (c for c in self.Pool if c.connectionLock.acquire(False)):
             return conn
         conn = self.addConnection(True)
         return conn
@@ -220,7 +221,7 @@ class WWPassConnectionMT(WWPassConnection):
             return conn.makeRequest(method, command, attempts, **paramsDict)
         finally:
             if conn is not None:
-                conn.lock.release()
+                conn.connectionLock.release()
 
 WWPASSConnection = WWPassConnection
 WWPASSConnectionMT = WWPassConnectionMT
