@@ -222,6 +222,3 @@ class WWPassConnectionMT(WWPassConnection):
         finally:
             if conn is not None:
                 conn.connectionLock.release()
-
-WWPASSConnection = WWPassConnection
-WWPASSConnectionMT = WWPassConnectionMT
