@@ -15,9 +15,9 @@ __date__ ="$27.11.2014 18:05:15$"
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pickle
+from pickle import loads as pickleLoads
+from ssl import SSLContext, PROTOCOL_TLS
 from threading import Lock
-import ssl
 
 from urllib.parse import urlencode
 from urllib.request import urlopen
@@ -68,7 +68,7 @@ class WWPassException(IOError):
 
 class WWPassConnection():
     def __init__(self, key_file, cert_file, timeout=10, spfe_addr='https://spfe.wwpass.com', cafile=None):
-        self.context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
+        self.context = SSLContext(protocol=PROTOCOL_TLS)
         self.context.load_cert_chain(certfile=cert_file, keyfile=key_file)
         if cafile is None:
             self.context.load_verify_locations(cadata=DEFAULT_CADATA)
@@ -84,7 +84,7 @@ class WWPassConnection():
                 res = urlopen(self.spfe_addr +'/'+command+'?'+urlencode(params), context=self.context, timeout=self.timeout)
             else:
                 res = urlopen(self.spfe_addr +'/'+command, data=urlencode(params).encode('UTF-8'), context=self.context, timeout=self.timeout)
-            res = pickle.loads(res.read())
+            res = pickleLoads(res.read())
             if not res['result']:
                 if 'code'in res:
                     raise WWPassException('SPFE returned error: %s: %s' %(res['code'], res['data']))
