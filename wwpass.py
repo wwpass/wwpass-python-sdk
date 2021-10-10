@@ -1,5 +1,5 @@
-__author__="Rostislav Kondratenko <r.kondratenko@wwpass.com>"
-__date__ ="$27.11.2014 18:05:15$"
+__author__ = "Rostislav Kondratenko <r.kondratenko@wwpass.com>"
+__date__  = "$27.11.2014 18:05:15$"
 
 # Copyright 2009-2021 WWPASS Corporation
 #
@@ -15,6 +15,7 @@ __date__ ="$27.11.2014 18:05:15$"
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from http.client import HTTPResponse
 from pickle import loads as pickleLoads
 from ssl import SSLContext, PROTOCOL_TLSv1_2
 from threading import Lock
@@ -23,6 +24,11 @@ from typing import Any, Iterable, List, Literal, Mapping, Optional, Union
 from urllib.parse import urlencode
 from urllib.request import urlopen
 from urllib.error import URLError
+
+GET = 'GET'
+POST = 'POST'
+
+VALID_AUTH_TYPES = 'psc' # password, sessionKey, clientKey
 
 DEFAULT_CADATA = '''-----BEGIN CERTIFICATE-----
 MIIGATCCA+mgAwIBAgIJAN7JZUlglGn4MA0GCSqGSIb3DQEBCwUAMFcxCzAJBgNV
@@ -60,169 +66,165 @@ LEBB84k3+v+AtbXePEwvp+o1nu/+1sRkhqlNFHN67vakqC4xTxiuPxu6Pb/uDeNI
 ip0+E9I=
 -----END CERTIFICATE-----'''
 
-PIN = 'p'
-SESSION_KEY = 's'
-CLIENT_KEY = 'c'
-
-Data = Mapping[str, str]
+WWPassData = Mapping[str, str]
 
 class WWPassException(IOError):
     pass
 
 class WWPassConnection():
-    def __init__(self, key_file: str, cert_file: str, timeout: int = 10, spfe_addr: str = 'https://spfe.wwpass.com', cafile: Optional[str] = None) -> None:
+    def __init__(self, keyFile: str, certFile: str, timeout: int = 10, spfeAddress: str = 'https://spfe.wwpass.com', caFile: Optional[str] = None) -> None:
         self.context = SSLContext(protocol = PROTOCOL_TLSv1_2)
-        self.context.load_cert_chain(certfile = cert_file, keyfile = key_file)
-        if cafile is None:
+        self.context.load_cert_chain(certfile = certFile, keyfile = keyFile)
+        if caFile is None:
             self.context.load_verify_locations(cadata = DEFAULT_CADATA)
         else:
-            self.context.load_verify_locations(cafile = cafile)
-        self.spfe_addr = f'https://{spfe_addr}' if spfe_addr.find('://') == -1 else spfe_addr
+            self.context.load_verify_locations(cafile = caFile)
+        self.spfeAddress = f'https://{spfeAddress}' if spfeAddress.find('://') == -1 else spfeAddress
         self.timeout = timeout
-        self.connectionLock: Lock
+        self.connectionLock: Optional[Lock] = None
 
-    def makeRequest(self, method: str, command: str, attempts: int = 3, **paramsDict: Union[str, bytes, int, None]) -> Data:
-        params = { k: v.encode('UTF-8') if not isinstance(v, (bytes, int)) else v for (k, v) in paramsDict.items() if v is not None }
+    def makeRequest(self, method: str, command: str, *, attempts: int = 3, **kwargs: Union[str, bytes, int, None]) -> WWPassData:
+        kwargs = { k: v.encode('UTF-8') if isinstance(v, str) else v for (k, v) in kwargs.items() if v is not None }
         try:
-            if method == 'GET': # pylint: disable=consider-ternary-expression
-                res = urlopen(f'{self.spfe_addr}/{command}?{urlencode(params)}', context = self.context, timeout = self.timeout)
+            response: HTTPResponse
+            if method == GET: # pylint: disable=consider-ternary-expression
+                response = urlopen(f'{self.spfeAddress}/{command}?{urlencode(kwargs)}', context = self.context, timeout = self.timeout)
             else:
-                res = urlopen(f'{self.spfe_addr}/{command}', data = urlencode(params).encode('UTF-8'), context = self.context, timeout = self.timeout) # pylint: disable=consider-using-with
-            ret = pickleLoads(res.read())
+                response = urlopen(f'{self.spfeAddress}/{command}', data = urlencode(kwargs).encode('UTF-8'), context = self.context, timeout = self.timeout) # pylint: disable=consider-using-with
+            ret = pickleLoads(response.read())
             assert isinstance(ret, Mapping)
             if not ret['result']:
-                if 'code' in ret:
-                    raise WWPassException(f"SPFE returned error: {ret['code']}: {ret['data']}")
-                raise WWPassException(f"SPFE returned error: {ret['data']}")
+                code = f'{ret["code"]}: ' if 'code' in ret else ''
+                raise WWPassException(f"SPFE returned error: {code}{ret['data']}")
             return ret
         except URLError:
-            if attempts > 0:
-                attempts -= 1
-            else:
-                raise
-        return self.makeRequest(method, command, attempts, **params)
+            if attempts > 1:
+                return self.makeRequest(method, command, attempts = attempts - 1, **kwargs)
+            raise
 
     @staticmethod
-    def makeAuthTypeString(auth_types: Iterable[str]) -> str:
-        valid_auth_types = (PIN, SESSION_KEY, CLIENT_KEY)
-        return ''.join(x for x in auth_types if x in valid_auth_types)
+    def validateAuthTypes(authTypes: Iterable[str]) -> Optional[str]:
+        return ''.join(a for a in authTypes if a in VALID_AUTH_TYPES) or None
 
     def getName(self) -> str:
         ticket = self.getTicket(ttl = 0)['ticket']
         if (pos := ticket.find(':')) == -1:
-            raise WWPassException('Cannot extract service provider name from ticket.')
+            raise WWPassException("Cannot extract service provider name from ticket")
         return ticket[:pos]
 
-    def getTicket(self, ttl: Optional[int] = None, auth_types: Iterable[str] = ()) -> Data:
-        result = self.makeRequest('GET', 'get', ttl = ttl or None, auth_type = self.makeAuthTypeString(auth_types) or None)
+    def getTicket(self, ttl: int = 0, authTypes: Iterable[str] = ()) -> WWPassData:
+        result = self.makeRequest(GET, 'get', ttl = ttl or None, auth_type = self.validateAuthTypes(authTypes))
         return {'ticket': result['data'], 'ttl': result['ttl']}
 
-    def getPUID(self, ticket: Union[str, bytes], auth_types: Iterable[str] = (), finalize: bool = False) -> Data:
-        result = self.makeRequest('GET', 'puid', ticket = ticket, auth_type = self.makeAuthTypeString(auth_types) or None, finalize = 1 if finalize else None)
+    def getPUID(self, ticket: Union[str, bytes], authTypes: Iterable[str] = (), finalize: bool = False) -> WWPassData:
+        result = self.makeRequest(GET, 'puid', ticket = ticket, auth_type = self.validateAuthTypes(authTypes), finalize = 1 if finalize else None)
         return {'puid': result['data']}
 
-    def putTicket(self, ticket: Union[str, bytes], ttl: Optional[int] = None, auth_types: Iterable[str] = (), finalize: bool = False) -> Data:
-        result = self.makeRequest('GET', 'put', ticket = ticket, ttl = ttl or None, auth_type = self.makeAuthTypeString(auth_types) or None, finalize = 1 if finalize else None)
+    def putTicket(self, ticket: Union[str, bytes], ttl: int = 0, authTypes: Iterable[str] = (), finalize: bool = False) -> WWPassData:
+        result = self.makeRequest(GET, 'put', ticket = ticket, ttl = ttl or None, auth_type = self.validateAuthTypes(authTypes), finalize = 1 if finalize else None)
         return {'ticket': result['data'], 'ttl': result['ttl']}
 
-    def readData(self, ticket: Union[str, bytes], container: Union[str, bytes] = '', finalize: bool = False) -> Data:
-        result = self.makeRequest('GET', 'read', ticket = ticket, container = container or None, finalize = 1 if finalize else None)
+    def readWWPassData(self, ticket: Union[str, bytes], container: Union[str, bytes] = '', finalize: bool = False) -> WWPassData:
+        result = self.makeRequest(GET, 'read', ticket = ticket, container = container or None, finalize = 1 if finalize else None)
         return {'data': result['data']}
 
-    def readDataAndLock(self, ticket: Union[str, bytes], lockTimeout: int, container: Union[str, bytes] = '') -> Data:
-        result = self.makeRequest('GET', 'read', ticket = ticket, container = container or None, lock = '1', to = lockTimeout)
+    def readWWPassDataAndLock(self, ticket: Union[str, bytes], lockTimeout: int, container: Union[str, bytes] = '') -> WWPassData:
+        result = self.makeRequest(GET, 'read', ticket = ticket, container = container or None, lock = '1', to = lockTimeout)
         return {'data': result['data']}
 
-    def writeData(self, ticket: Union[str, bytes], data: Union[str, bytes], container: Union[str, bytes] = '', finalize: bool = False) -> Literal[True]:
-        self.makeRequest('POST', 'write', ticket = ticket, data = data, container = container or None, finalize = 1 if finalize else None)
+    def writeWWPassData(self, ticket: Union[str, bytes], data: Union[str, bytes], container: Union[str, bytes] = '', finalize: bool = False) -> Literal[True]:
+        self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container or None, finalize = 1 if finalize else None)
         return True
 
-    def writeDataAndUnlock(self, ticket: Union[str, bytes], data: Union[str, bytes], container: Union[str, bytes] = '', finalize: bool = False) -> Literal[True]:
-        self.makeRequest('POST', 'write', ticket = ticket, data = data, container = container or None, unlock = '1', finalize = 1 if finalize else None)
+    def writeWWPassDataAndUnlock(self, ticket: Union[str, bytes], data: Union[str, bytes], container: Union[str, bytes] = '', finalize: bool = False) -> Literal[True]:
+        self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container or None, unlock = '1', finalize = 1 if finalize else None)
         return True
 
     def lock(self, ticket: Union[str, bytes], lockTimeout: int, lockid: Union[str, bytes]) -> Literal[True]:
-        self.makeRequest('GET', 'lock', ticket = ticket, lockid = lockid, to = lockTimeout)
+        self.makeRequest(GET, 'lock', ticket = ticket, lockid = lockid, to = lockTimeout)
         return True
 
     def unlock(self, ticket: Union[str, bytes], lockid: Union[str, bytes], finalize: bool = False) -> Literal[True]:
-        self.makeRequest('GET', 'unlock', ticket = ticket, lockid = lockid, finalize = 1 if finalize else None)
+        self.makeRequest(GET, 'unlock', ticket = ticket, lockid = lockid, finalize = 1 if finalize else None)
         return True
 
-    def getSessionKey(self, ticket: Union[str, bytes], finalize: bool = False) -> Data:
-        result = self.makeRequest('GET', 'key', ticket = ticket, finalize = 1 if finalize else None)
+    def getSessionKey(self, ticket: Union[str, bytes], finalize: bool = False) -> WWPassData:
+        result = self.makeRequest(GET, 'key', ticket = ticket, finalize = 1 if finalize else None)
         return {'sessionKey': result['data']}
 
-    def createPFID(self, data: Union[str, bytes] = '') -> Data:
-        result = self.makeRequest('POST', 'sp/create', data = data) if data \
-            else self.makeRequest('GET', 'sp/create')
+    def createPFID(self, data: Union[str, bytes] = '') -> WWPassData:
+        result = self.makeRequest(POST, 'sp/create', data = data) if data \
+            else self.makeRequest(GET, 'sp/create')
         return {'pfid': result['data']}
 
     def removePFID(self, pfid: Union[str, bytes]) -> Literal[True]:
-        self.makeRequest('POST', 'sp/remove', pfid = pfid)
+        self.makeRequest(POST, 'sp/remove', pfid = pfid)
         return True
 
-    def readDataSP(self, pfid: Union[str, bytes]) -> Data:
-        result = self.makeRequest('GET', 'sp/read', pfid = pfid)
+    def readWWPassDataSP(self, pfid: Union[str, bytes]) -> WWPassData:
+        result = self.makeRequest(GET, 'sp/read', pfid = pfid)
         return {'data': result['data']}
 
-    def readDataSPandLock(self, pfid: Union[str, bytes], lockTimeout: int) -> Data:
-        result = self.makeRequest('GET', 'sp/read', pfid = pfid, to = lockTimeout, lock = 1)
+    def readWWPassDataSPandLock(self, pfid: Union[str, bytes], lockTimeout: int) -> WWPassData:
+        result = self.makeRequest(GET, 'sp/read', pfid = pfid, to = lockTimeout, lock = 1)
         return {'data': result['data']}
 
-    def writeDataSP(self, pfid: Union[str, bytes], data: Union[str, bytes]) -> Literal[True]:
-        self.makeRequest('POST', 'sp/write', pfid = pfid, data = data)
+    def writeWWPassDataSP(self, pfid: Union[str, bytes], data: Union[str, bytes]) -> Literal[True]:
+        self.makeRequest(POST, 'sp/write', pfid = pfid, data = data)
         return True
 
-    def writeDataSPandUnlock(self, pfid: Union[str, bytes], data: Union[str, bytes]) -> Literal[True]:
-        self.makeRequest('POST', 'sp/write', pfid = pfid, data = data, unlock = 1)
+    def writeWWPassDataSPandUnlock(self, pfid: Union[str, bytes], data: Union[str, bytes]) -> Literal[True]:
+        self.makeRequest(POST, 'sp/write', pfid = pfid, data = data, unlock = 1)
         return True
 
     def lockSP(self, lockid: Union[str, bytes], lockTimeout: int) -> Literal[True]:
-        self.makeRequest('GET', 'sp/lock', lockid = lockid, to = lockTimeout)
+        self.makeRequest(GET, 'sp/lock', lockid = lockid, to = lockTimeout)
         return True
 
     def unlockSP(self, lockid: Union[str, bytes]) -> Literal[True]:
-        self.makeRequest('GET', 'sp/unlock', lockid = lockid)
+        self.makeRequest(GET, 'sp/unlock', lockid = lockid)
         return True
 
-    def getClientKey(self, ticket: Union[str, bytes]) -> Data:
-        result = self.makeRequest('GET', 'clientkey', ticket = ticket)
-        res_dict = {'clientKey': result['data'], 'ttl': result['ttl']}
+    def getClientKey(self, ticket: Union[str, bytes]) -> WWPassData:
+        result = self.makeRequest(GET, 'clientkey', ticket = ticket)
+        ret = {'clientKey': result['data'], 'ttl': result['ttl']}
         if 'originalTicket' in result:
-            res_dict['originalTicket'] = result['originalTicket']
-        return res_dict
+            ret['originalTicket'] = result['originalTicket']
+        return ret
 
 class WWPassConnectionMT(WWPassConnection):
-    def __init__(self, key_file: str, cert_file: str, timeout: int = 10, spfe_addr: str = 'https://spfe.wwpass.com', ca_file: Optional[str] = None, initial_connections: int = 2) -> None: # pylint: disable=super-init-not-called
-        self.Pool: List[WWPassConnection] = []
-        self.key_file = key_file
-        self.cert_file = cert_file
-        self.ca_file = ca_file
+    def __init__(self, keyFile: str, certFile: str, timeout: int = 10, spfeAddress: str = 'https://spfe.wwpass.com', caFile: Optional[str] = None, initialConnections: int = 2) -> None: # pylint: disable=super-init-not-called
+        self.keyFile = keyFile
+        self.certFile = certFile
         self.timeout = timeout
-        self.spfe_addr = spfe_addr
-        for _ in range(initial_connections):
+        self.spfeAddress = spfeAddress
+        self.caFile = caFile
+        self.connectionPool: List[WWPassConnection] = []
+        for _ in range(initialConnections):
             self.addConnection()
 
     def addConnection(self, acquired: bool = False) -> WWPassConnection:
-        c = WWPassConnection(self.key_file, self.cert_file, self.timeout, self.spfe_addr, self.ca_file)
-        c.connectionLock = Lock()
+        conn = WWPassConnection(self.keyFile, self.certFile, self.timeout, self.spfeAddress, self.caFile)
+        conn.connectionLock = Lock()
         if acquired:
-            c.connectionLock.acquire()
-        self.Pool.append(c)
-        return c
-
-    def getConnection(self) -> WWPassConnection:
-        for conn in (c for c in self.Pool if c.connectionLock.acquire(False)):
-            return conn
-        conn = self.addConnection(True)
+            assert conn.connectionLock
+            conn.connectionLock.acquire() # pylint: disable=consider-using-with
+        self.connectionPool.append(conn)
         return conn
 
-    def makeRequest(self, method: str, command: str, attempts: int = 3, **paramsDict: Any) -> Data:
+    def getConnection(self) -> WWPassConnection:
+        for conn in self.connectionPool:
+            assert conn.connectionLock
+            if conn.connectionLock.acquire(False):
+                return conn
+        return self.addConnection(True)
+
+    def makeRequest(self, method: str, command: str, *, attempts: int = 3, **kwargs: Any) -> WWPassData:
         conn = None
         try:
             conn = self.getConnection()
-            return conn.makeRequest(method, command, attempts, **paramsDict)
+            return conn.makeRequest(method, command, attempts = attempts, **kwargs)
         finally:
-            if conn is not None:
+            if conn:
+                assert conn.connectionLock
                 conn.connectionLock.release()
