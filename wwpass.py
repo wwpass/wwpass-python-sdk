@@ -28,6 +28,9 @@ from urllib.error import URLError
 GET = 'GET'
 POST = 'POST'
 
+SPFE_ADDRESS = 'https://spfe.wwpass.com'
+DEFAULT_TIMEOUT = 10
+
 VALID_AUTH_TYPES = 'psc' # password, sessionKey, clientKey
 
 DEFAULT_CADATA = '''-----BEGIN CERTIFICATE-----
@@ -72,14 +75,14 @@ class WWPassException(IOError):
     pass
 
 class WWPassConnection():
-    def __init__(self, keyFile: str, certFile: str, timeout: int = 10, spfeAddress: str = 'https://spfe.wwpass.com', caFile: Optional[str] = None) -> None:
+    def __init__(self, keyFile: str, certFile: str, timeout: int = DEFAULT_TIMEOUT, spfeAddress: str = SPFE_ADDRESS, caFile: Optional[str] = None) -> None:
         self.context = SSLContext(protocol = PROTOCOL_TLSv1_2)
         self.context.load_cert_chain(certfile = certFile, keyfile = keyFile)
         if caFile is None:
             self.context.load_verify_locations(cadata = DEFAULT_CADATA)
         else:
             self.context.load_verify_locations(cafile = caFile)
-        self.spfeAddress = f'https://{spfeAddress}' if spfeAddress.find('://') == -1 else spfeAddress
+        self.spfeAddress = spfeAddress if spfeAddress.find('://') >= 0 else f'https://{spfeAddress}'
         self.timeout = timeout
         self.connectionLock: Optional[Lock] = None
 
@@ -202,7 +205,7 @@ class WWPassConnection():
         return ret
 
 class WWPassConnectionMT(WWPassConnection):
-    def __init__(self, keyFile: str, certFile: str, timeout: int = 10, spfeAddress: str = 'https://spfe.wwpass.com', caFile: Optional[str] = None, initialConnections: int = 2) -> None: # pylint: disable=super-init-not-called
+    def __init__(self, keyFile: str, certFile: str, timeout: int = DEFAULT_TIMEOUT, spfeAddress: str = SPFE_ADDRESS, caFile: Optional[str] = None, initialConnections: int = 2) -> None: # pylint: disable=super-init-not-called
         self.keyFile = keyFile
         self.certFile = certFile
         self.timeout = timeout
