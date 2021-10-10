@@ -1,0 +1,28 @@
+stages:
+  - lint
+
+lint:
+  stage: lint
+  tags:
+    - pylint3
+  script:
+    - pwd
+    - pip3 install --upgrade --user pip pylint astroid typed-ast mypy
+    - if [[ ${CI_COMMIT_REF_NAME} == release* ]] ; then DEP_BRANCH=master ; else DEP_BRANCH=staging ; fi
+    - for p in utilities/wwpass-typeshed.git utilities/ci-support.git ; do d=${p%.git} ; d=${d#*/} ; git clone --depth 1 -b "${CI_COMMIT_REF_NAME}" git@gitlab.wwpass.net:${p} || git clone --depth 1 -b ${DEP_BRANCH} git@gitlab.wwpass.net:${p} || git clone --depth 1 git@gitlab.wwpass.net:${p} ; echo "------ Cloned $(git -C $d branch --show-current) from ${p} ------" ; done
+
+    - LINT_FILES=`ls *.py`
+    - pylintExitCode=0
+    - python3 -m pylint --rcfile ci-support/pylintrc ${LINT_FILES} | tee ../pylint.log || pylintExitCode=$?
+    - "echo EXIT: $pylintExitCode"
+    - mypyExitCode=0
+    - MYPYPATH=wwpass-typeshed mypy3 --config-file ci-support/mypy.ini --follow-imports=normal ${LINT_FILES} | tee ../mypy.log || mypyExitCode=$?
+    - "echo EXIT: $mypyExitCode"
+    - exit $(($pylintExitCode || $mypyExitCode))
+  allow_failure: true
+  artifacts:
+    paths:
+      - pylint.log
+      - mypy.log
+    when: always
+    name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}-lint"
