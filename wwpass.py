@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __author__ = "Rostislav Kondratenko <r.kondratenko@wwpass.com>"
 __date__  = "$27.11.2014 18:05:15$"
 
@@ -21,9 +22,15 @@ from ssl import SSLContext, PROTOCOL_TLSv1_2
 from threading import Lock
 from typing import Any, Iterable, List, Literal, Mapping, Optional, Union
 
-from urllib.parse import urlencode
-from urllib.request import urlopen
-from urllib.error import URLError
+import sys
+if sys.version_info[0] == 2:
+    from urllib2 import urlopen, URLError
+    from urllib import urlencode
+else: # Python 3
+    from urllib.request import urlopen
+    from urllib.parse import urlencode
+    from urllib.error import URLError
+    xrange = range
 
 GET = 'GET'
 POST = 'POST'
@@ -74,7 +81,7 @@ WWPassData = Mapping[str, str]
 class WWPassException(IOError):
     pass
 
-class WWPassConnection():
+class WWPassConnection(object):
     def __init__(self, keyFile: str, certFile: str, timeout: int = DEFAULT_TIMEOUT, spfeAddress: str = SPFE_ADDRESS, caFile: Optional[str] = None) -> None:
         self.context = SSLContext(protocol = PROTOCOL_TLSv1_2)
         self.context.load_cert_chain(certfile = certFile, keyfile = keyFile)
@@ -212,7 +219,7 @@ class WWPassConnectionMT(WWPassConnection):
         self.spfeAddress = spfeAddress
         self.caFile = caFile
         self.connectionPool: List[WWPassConnection] = []
-        for _ in range(initialConnections):
+        for _ in xrange(initialConnections):
             self.addConnection()
 
     def addConnection(self, acquired: bool = False) -> WWPassConnection:
