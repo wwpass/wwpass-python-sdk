@@ -89,7 +89,7 @@ class WWPassConnection(object):
             self.context.load_verify_locations(cadata = DEFAULT_CADATA)
         else:
             self.context.load_verify_locations(cafile = caFile)
-        self.spfeAddress = spfeAddress if spfeAddress.find('://') >= 0 else f'https://{spfeAddress}'
+        self.spfeAddress = spfeAddress if spfeAddress.find('://') >= 0 else 'https://' + spfeAddress
         self.timeout = timeout
         self.connectionLock: Optional[Lock] = None
 
@@ -107,14 +107,13 @@ class WWPassConnection(object):
             try:
                 response: HTTPResponse
                 if method == GET: # pylint: disable=consider-ternary-expression
-                    response = urlopen(f'{self.spfeAddress}/{command}?{urlencode(kwargs)}', context = self.context, timeout = self.timeout)
+                    response = urlopen(self.spfeAddress + '/' + command + '?' + urlencode(kwargs), context = self.context, timeout = self.timeout)
                 else:
-                    response = urlopen(f'{self.spfeAddress}/{command}', data = urlencode(kwargs).encode('UTF-8'), context = self.context, timeout = self.timeout) # pylint: disable=consider-using-with
+                    response = urlopen(self.spfeAddress + '/' + command, data = urlencode(kwargs).encode('UTF-8'), context = self.context, timeout = self.timeout)
                 ret = pickleLoads(response.read())
                 assert isinstance(ret, Mapping)
                 if not ret['result']:
-                    code = f'{ret["code"]}: ' if 'code' in ret else ''
-                    raise WWPassException(f"SPFE returned error: {code}{ret['data']}")
+                    raise WWPassException("SPFE returned error: %s%s" % (ret['code'] + ': ' if 'code' in ret else '', ret['data']))
                 return ret
             except URLError:
                 if attempts <= 1:
