@@ -126,7 +126,8 @@ class WWPassConnection(object):
 
     def getName(self) -> str:
         ticket = self.getTicket(ttl = 0)['ticket']
-        if (pos := ticket.find(':')) == -1:
+        pos = ticket.find(':')
+        if pos == -1:
             raise WWPassException("Cannot extract service provider name from ticket")
         return ticket[:pos]
 
