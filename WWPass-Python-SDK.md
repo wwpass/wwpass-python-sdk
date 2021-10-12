@@ -94,7 +94,7 @@ Calls to this function get a newly-issued ticket from SPFE.
 | Name | Description |
 | ------- | -------------- |
 | ttl | The period in seconds for the ticket to remain valid since issuance. The default is 600 seconds. |
-| auth_types | Defines options that should have been asked from the user to authenticate this ticket. This is checked against what was actually used when the ticket was authenticated. The values may be a sequence with any combination of following constatnts: PIN — to ask for PassKey and access code; SESSION_KEY — to generate cryptographically secure random number that would be available both to client and Service Provider; CLIENT_KEY — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty sequence to ask for PassKey only (default). |
+| auth_types | Defines options that will be asked from the user to authenticate this ticket. This is checked against what was actually used when the ticket was authenticated. The values may be a sequence with any combination of following constatnts: PIN — to ask for PassKey and access code; SESSION_KEY — to generate cryptographically secure random number that would be available both to client and Service Provider; CLIENT_KEY — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty sequence to ask for PassKey only (default). |
 ##### Returns
 `{"ticket" : <Ticket issued by the SPFE>, "ttl" : <ticket's time-to-live in seconds>}`
 ##### Throws
@@ -144,7 +144,7 @@ Calls to this function request data stored in the user’s data container.
 | Name | Description |
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
-| container | Arbitrary bytes object, limited by 16 bytes, identifying the user’s data container. |
+| container | Arbitrary bytes object, up to 16 bytes, identifying the user’s data container. |
 | finalize | Set to True value to invalidate the ticket after this operation is finished. |
 ##### Returns
 `{"data": <data>}` or
@@ -162,7 +162,7 @@ Calls to this function request data stored in the user’s data container and lo
 | Name | Description |
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
-| lockTimeout | The period in seconds for the data container to remain protected from the new lock being acquired |
+| lockTimeout | The period in seconds for the data container to remain protected from the new lock being acquired. |
 | container | Arbitrary bytes object, limited by 16 bytes, identifying the user’s data container. |
 ##### Returns
 `{"data": <data>}` or
@@ -214,8 +214,8 @@ Calls to this function locks an advisory lock identified by the user (by authent
 | Name | Description |
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
-| lockTimeout | The period in seconds for the data container to remain protected from the new lock being acquired |
-| lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
+| lockTimeout | The period in seconds for the data container to remain protected from the new lock being acquired. |
+| lockid | Arbitrary bytes object, up to 16 bytes, identifying the lock. |
 ##### Returns
 `True`
 ##### Throws
@@ -231,7 +231,7 @@ Calls to this function unlocks an advisory lock identified by the user (by authe
 | Name | Description |
 | ------- | -------------- |
 | ticket | The authenticated ticket issued by the SPFE. |
-| lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
+| lockid | Arbitrary bytes object, up to 16 bytes, identifying the lock. |
 | finalize | Set to True value to close the ticket after this operation is finished. |
 ##### Returns
 `True`
@@ -263,7 +263,7 @@ This function is only used when WWPass client-side cryptography is implemented b
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
-| ticket | The authenticated ticket that was generated with Client Key auth type. |
+| ticket | The authenticated ticket that was generated with CLIENT_KEY auth type. |
 ##### Returns
 `{"clientKey" : <encrypted client key>, "ttl" : <time-to-live in seconds>, "originalTicket" : <original ticket>}` or
 `{"clientKey" : <encrypted client key>, "ttl" : <time-to-live in seconds>}` if the request correspond to the first issued ticket
@@ -367,8 +367,8 @@ A call to this function tries to lock a lock identified by lockid.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
-| lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
-| lockTimeout | The period in seconds for the data container to remain protected from the new lock being acquired |
+| lockid | Arbitrary bytes object, up to 16 bytes, identifying the lock. |
+| lockTimeout | The period in seconds for the data container to remain protected from the new lock being acquired. |
 ##### Returns
 `True`
 ##### Throws
@@ -382,7 +382,7 @@ A call to this function tries to unlock a lock identified by lockid.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
-| lockid | Arbitrary bytes object, limited by 16 bytes, identifying the lock. |
+| lockid | Arbitrary bytes object, up to 16 bytes, identifying the lock. |
 ##### Returns
 `True`
 ##### Throws
