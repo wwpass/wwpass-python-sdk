@@ -30,10 +30,9 @@ if sys.version_info[0] == 2:
     from urllib2 import urlopen, URLError
     from urllib import urlencode
 else: # Python 3
-    if TYPE_CHECKING:
-        from urllib.request import urlopen # pylint: disable=import-error, no-name-in-module, useless-suppression
-        from urllib.parse import urlencode # pylint: disable=import-error, no-name-in-module, useless-suppression
-        from urllib.error import URLError  # pylint: disable=import-error, no-name-in-module, useless-suppression
+    from urllib.request import urlopen # pylint: disable=import-error, no-name-in-module, useless-suppression
+    from urllib.parse import urlencode # pylint: disable=import-error, no-name-in-module, useless-suppression
+    from urllib.error import URLError  # pylint: disable=import-error, no-name-in-module, useless-suppression
     xrange = range # pylint: disable=redefined-builtin, useless-suppression
 
 GET = 'GET'
