@@ -16,6 +16,8 @@ __date__  = "$27.11.2014 18:05:15$"
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: disable=consider-ternary-expression, consider-using-assignment-expr, consider-using-f-string, consider-using-with, useless-object-inheritance
+
 from pickle import loads as pickleLoads
 from ssl import SSLContext, PROTOCOL_TLSv1_2
 from threading import Lock
