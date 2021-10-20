@@ -4,25 +4,34 @@ stages:
 lint:
   stage: lint
   tags:
-    - pylint3
+    - pylint2, pylint3
   script:
     - pwd
-    - pip3 install --upgrade --user pip pylint astroid typed-ast mypy
     - if [[ ${CI_COMMIT_REF_NAME} == release* ]] ; then DEP_BRANCH=master ; else DEP_BRANCH=staging ; fi
-    - for p in utilities/wwpass-typeshed.git utilities/ci-support.git ; do d=${p%.git} ; d=${d#*/} ; git clone --depth 1 -b "${CI_COMMIT_REF_NAME}" git@gitlab.wwpass.net:${p} || git clone --depth 1 -b ${DEP_BRANCH} git@gitlab.wwpass.net:${p} || git clone --depth 1 git@gitlab.wwpass.net:${p} ; echo "------ Cloned $(git -C $d branch --show-current) from ${p} ------" ; done
+    - for p in utilities/ci-support.git ; do d=${p%.git} ; d=${d#*/} ; git clone --depth 1 -b "${CI_COMMIT_REF_NAME}" git@gitlab.wwpass.net:${p} || git clone --depth 1 -b ${DEP_BRANCH} git@gitlab.wwpass.net:${p} || git clone --depth 1 git@gitlab.wwpass.net:${p} ; echo "------ Cloned $(git -C $d branch --show-current) from ${p} ------" ; done
 
     - LINT_FILES=`ls *.py`
-    - pylintExitCode=0
-    - python3 -m pylint --rcfile ci-support/pylintrc ${LINT_FILES} | tee ../pylint.log || pylintExitCode=$?
-    - "echo EXIT: $pylintExitCode"
-    - mypyExitCode=0
-    - MYPYPATH=wwpass-typeshed mypy3 --config-file ci-support/mypy.ini --follow-imports=normal ${LINT_FILES} | tee ../mypy.log || mypyExitCode=$?
-    - "echo EXIT: $mypyExitCode"
-    - exit $(($pylintExitCode || $mypyExitCode))
+    - pip2 install --upgrade --user pip pylint astroid
+    - pylint2ExitCode=0
+    - python2 -m pylint --rcfile ci-support/pylint2rc --disable=ungrouped-imports ${LINT_FILES} | tee pylint2.log || pylint2ExitCode=$?
+    - "echo EXIT: $pylint2ExitCode"
+    - pip3 install --upgrade --user pip pylint astroid typed-ast mypy
+    - pylint3ExitCode=0
+    - python3 -m pylint --rcfile ci-support/pylintrc --disable=consider-using-assignment-expr,consider-ternary-expression,consider-using-f-string,consider-using-with,useless-object-inheritance ${LINT_FILES} | tee pylint3.log || pylint3ExitCode=$?
+    - "echo EXIT: $pylint3ExitCode"
+    - mypy2ExitCode=0
+    - mypy --config-file ci-support/mypy2.ini --follow-imports=normal ${LINT_FILES} | tee mypy2.log || mypy2ExitCode=$?
+    - "echo EXIT: $mypy2ExitCode"
+    - mypy3ExitCode=0
+    - mypy --config-file ci-support/mypy.ini --follow-imports=normal ${LINT_FILES} | tee mypy3.log || mypy3ExitCode=$?
+    - "echo EXIT: $mypy3ExitCode"
+    - exit $(($pylint2ExitCode || $pylint3ExitCode || $mypy2ExitCode || $mypy3ExitCode))
   allow_failure: true
   artifacts:
     paths:
-      - pylint.log
-      - mypy.log
+      - pylint2.log
+      - pylint3.log
+      - mypy2.log
+      - mypy3.log
     when: always
     name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}-lint"
