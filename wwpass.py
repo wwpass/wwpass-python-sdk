@@ -97,6 +97,15 @@ class WWPassConnection(object):
         self.timeout = timeout
         self.connectionLock = None # type: Optional[Lock]
 
+    def close(self): # type: () -> None
+        pass
+
+    def __enter__(self): # type: () -> WWPassConnection
+        return self
+
+    def __exit__(self, *_args, **_kwargs): # type: (*Any, **Any) -> None
+        self.close()
+
     def makeRequest(self, method, command, ttl = 0, container = '', authTypes = (), lock = False, unlock = False, finalize = False, attempts = 3, **kwargs):
         # type: (str, str, int, Union[str, bytes], Iterable[str], bool, bool, bool, int, **Union[str, bytes, int, None]) -> WWPassData
         kwargs['ttl'] = ttl or None
@@ -224,6 +233,10 @@ class WWPassConnectionMT(WWPassConnection):
         self.connectionPool = [] # type: List[WWPassConnection]
         for _ in xrange(initialConnections):
             self.addConnection()
+
+    def close(self): # type: () -> None
+        for conn in self.connectionPool:
+            conn.close()
 
     def addConnection(self, acquired = False): # type: (bool) -> WWPassConnection
         conn = WWPassConnection(self.keyFile, self.certFile, self.timeout, self.spfeAddress, self.caFile)
