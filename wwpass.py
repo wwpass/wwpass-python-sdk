@@ -21,12 +21,14 @@ __date__  = "$27.11.2014 18:05:15$"
 from pickle import loads as pickleLoads
 from ssl import SSLContext, PROTOCOL_TLSv1_2
 from threading import Lock
-from typing import Mapping, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from typing import Any, Iterable, List, Optional, Union # pylint: disable=unused-import, useless-suppression
+try:
+    from typing import Any, Iterable, List, Mapping, Optional, Union # pylint: disable=unused-import, useless-suppression
+    WWPassData = Mapping[str, str]
+except ImportError:
+    WWPassData = dict # type: ignore[misc]
 
-import sys # pylint: disable=wrong-import-position
+import sys
 if sys.version_info[0] == 2:
     # Python 2
     from urllib2 import urlopen, URLError
@@ -81,8 +83,6 @@ LEBB84k3+v+AtbXePEwvp+o1nu/+1sRkhqlNFHN67vakqC4xTxiuPxu6Pb/uDeNI
 ip0+E9I=
 -----END CERTIFICATE-----'''
 
-WWPassData = Mapping[str, str]
-
 class WWPassException(IOError):
     pass
 
@@ -124,7 +124,7 @@ class WWPassConnection(object):
                 else:
                     response = urlopen(self.spfeAddress + '/' + command, data = urlencode(kwargs).encode('UTF-8'), context = self.context, timeout = self.timeout)
                 ret = pickleLoads(response.read())
-                assert isinstance(ret, Mapping)
+                assert isinstance(ret, dict)
                 if not ret['result']:
                     raise WWPassException("SPFE returned error: %s%s" % (ret['code'] + ': ' if 'code' in ret else '', ret['data']))
                 return ret
