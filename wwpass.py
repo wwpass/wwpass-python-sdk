@@ -131,7 +131,7 @@ class WWPassConnection(object):
                    ): # type: (...) -> WWPassData
         assert method in (GET, POST)
         cgiString = self._processArgs(authTypes, **kwargs)
-        url = self.spfeAddress + '/' + command + ('?' + cgiString if method == GET else '')
+        url = self.spfeAddress + '/' + command + ('?' + cgiString if method == GET and cgiString else '')
         data = cgiString.encode('UTF-8') if method == POST else None
         while True:
             try:
@@ -149,7 +149,7 @@ class WWPassConnection(object):
 
     def getName(self):
         # type: () -> str
-        ticket = self.getTicket(ttl = 0)['ticket']
+        ticket = self.getTicket()['ticket']
         pos = ticket.find(':')
         if pos == -1:
             raise WWPassException("Cannot extract service provider name from ticket")
