@@ -25,7 +25,7 @@ from threading import Lock
 
 try:
     from typing import Any, Dict, Iterable, List, Mapping, Optional, Union # pylint: disable=unused-import, useless-suppression
-    WWPassData = Mapping[str, str]
+    WWPassData = Mapping[str, Union[bytes, int]]
 except ImportError: # typing is absent in Python 2, unless installed explicitly via pip
     WWPassData = dict # type: ignore[misc]
 
@@ -148,9 +148,10 @@ class WWPassConnection(object):
                 attempts -= 1
 
     def getName(self):
-        # type: () -> str
+        # type: () -> bytes
         ticket = self.getTicket()['ticket']
-        pos = ticket.find(':')
+        assert isinstance(ticket, bytes)
+        pos = ticket.find(b':')
         if pos == -1:
             raise WWPassException("Cannot extract service provider name from ticket")
         return ticket[:pos]
