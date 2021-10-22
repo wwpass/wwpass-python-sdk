@@ -95,14 +95,14 @@ class WWPassConnection(object):
                  certFile,                   # type: str
                  timeout = DEFAULT_TIMEOUT,  # type: int
                  spfeAddress = SPFE_ADDRESS, # type: str
-                 caFile = None               # type: Optional[str]
+                 caFile = ''                 # type: str
                 ):                           # type: (...) -> None
         self.context = SSLContext(protocol = PROTOCOL_TLSv1_2)
         self.context.load_cert_chain(certfile = certFile, keyfile = keyFile)
-        if caFile is None:
-            self.context.load_verify_locations(cadata = DEFAULT_CADATA)
-        else:
+        if caFile:
             self.context.load_verify_locations(cafile = caFile)
+        else:
+            self.context.load_verify_locations(cadata = DEFAULT_CADATA)
         self.spfeAddress = spfeAddress if spfeAddress.find('://') >= 0 else 'https://' + spfeAddress
         self.timeout = timeout
         self.connectionLock = None # type: Optional[Lock] # For WWPassConnectionMT
@@ -118,7 +118,7 @@ class WWPassConnection(object):
 
     @staticmethod
     def _processArgs(authTypes = (), **kwargs):
-        # type: (Iterable[str], **Union[str, bytes, int, None]) -> str
+        # type: (Iterable[str], **Union[str, bytes, int]) -> str
         kwargs['auth_type'] = ''.join(a for a in authTypes if a in VALID_AUTH_TYPES)
         return urlencode({ k: (1 if v is True else v) for (k, v) in kwargs.items() if v })
 
@@ -127,7 +127,7 @@ class WWPassConnection(object):
                     command,        # type: str
                     authTypes = (), # type: Iterable[str]
                     attempts = 3,   # type: int
-                    **kwargs        # type: Union[str, bytes, int, None]
+                    **kwargs        # type: Union[str, bytes, int]
                    ): # type: (...) -> WWPassData
         assert method in (GET, POST)
         cgiString = self._processArgs(authTypes, **kwargs)
@@ -258,8 +258,8 @@ class WWPassConnection(object):
 class WWPassConnectionMT(WWPassConnection):
     def __init__(self,
                  initialConnections = 2, # type: int
-                 *args,                  # type: Union[str, int, None]
-                 **kwargs                # type: Union[str, int, None]
+                 *args,                  # type: Union[str, int]
+                 **kwargs                # type: Union[str, int]
                 ):                       # type: (...) -> None # pylint: disable=super-init-not-called
         self.initArgs = args
         self.initKWargs = kwargs
@@ -276,7 +276,7 @@ class WWPassConnectionMT(WWPassConnection):
         conn.connectionLock = Lock()
         if acquired:
             assert conn.connectionLock
-            conn.connectionLock.acquire()
+            conn.connectionLock.acquire() # pylint: disable=consider-using-with
         self.connectionPool.append(conn)
         return conn
 
@@ -290,7 +290,7 @@ class WWPassConnectionMT(WWPassConnection):
     def makeRequest(self, # type: ignore[no-untyped-def, override]
                     method,  # type: str
                     command, # type: str
-                    **kwargs # type: Union[str, bytes, int, Iterable[str], None]
+                    **kwargs # type: Union[str, bytes, int, Iterable[str]]
                    ):        # type: (...) -> WWPassData # pylint: disable=arguments-differ
         conn = None
         try:
