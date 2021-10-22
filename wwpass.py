@@ -16,8 +16,8 @@ __date__  = "$27.11.2014 18:05:15$"
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# These are Python 3 recommendations that are not valid for Python 2 compatible code
-# pylint: disable=consider-using-assignment-expr, consider-using-f-string, consider-using-with, useless-object-inheritance
+# These are Python 3 recommendations that are not valid for Python 2 compatible code:
+# pylint: disable=consider-using-assignment-expr, consider-using-f-string, useless-object-inheritance
 
 from pickle import loads as pickleLoads
 from ssl import SSLContext, PROTOCOL_TLSv1_2
@@ -26,7 +26,7 @@ from threading import Lock
 try:
     from typing import Any, Dict, Iterable, List, Mapping, Optional, Union # pylint: disable=unused-import, useless-suppression
     WWPassData = Mapping[str, Union[bytes, int]]
-except ImportError: # typing is absent in Python 2, unless installed explicitly via pip
+except ImportError: # typing is absent in Python 2 unless installed explicitly via pip
     WWPassData = dict # type: ignore[misc]
 
 import sys
@@ -39,7 +39,7 @@ else: # Python 3
     from urllib.response import addinfourl # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
     from urllib.parse import urlencode     # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
     from urllib.error import URLError      # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
-    xrange = range # pylint: disable=redefined-builtin, useless-suppression  # pylint 2/3 warnings
+    xrange = range                         # pylint: disable=redefined-builtin,               useless-suppression # pylint 2/3 warnings
 
 # HTTP methods
 GET = 'GET'
