@@ -1,3 +1,6 @@
+variables:
+  LINT_SUPPORT_PROJECTS: core-network/corenetwork-common.git
+
 stages:
   - lint
 
@@ -8,24 +11,39 @@ lint:
   script:
     - pwd
     - if [[ ${CI_COMMIT_REF_NAME} == release* ]] ; then DEP_BRANCH=master ; else DEP_BRANCH=staging ; fi
-    - for p in utilities/ci-support.git ; do d=${p%.git} ; d=${d#*/} ; git clone --depth 1 -b "${CI_COMMIT_REF_NAME}" git@gitlab.wwpass.net:${p} || git clone --depth 1 -b ${DEP_BRANCH} git@gitlab.wwpass.net:${p} || git clone --depth 1 git@gitlab.wwpass.net:${p} ; echo "------ Cloned $(git -C $d branch --show-current) from ${p} ------" ; done
-
     - LINT_FILES=`ls *.py`
+
+    - for p in ${LINT_SUPPORT_PROJECTS} utilities/ci-support.git ; do d=${p%.git} ; d=${d#*/} ; git clone --depth 1 -b "${CI_COMMIT_REF_NAME}" git@gitlab.wwpass.net:${p} || git clone --depth 1 -b ${DEP_BRANCH} git@gitlab.wwpass.net:${p} || git clone --depth 1 git@gitlab.wwpass.net:${p} ; echo "------ Cloned $(git -C $d branch --show-current) from ${p} ------" ; done
+    - cp corenetwork-common/scripts/*.py .
+
     - pip2 install --upgrade --user pip pylint astroid
+    - pip3 install --upgrade --user pip pylint astroid typed-ast mypy typeguard
+
     - pylint2ExitCode=0
     - python2 -m pylint --rcfile ci-support/pylint2rc --disable=bad-option-value ${LINT_FILES} | tee pylint2.log || pylint2ExitCode=$?
     - "echo EXIT: $pylint2ExitCode"
-    - pip3 install --upgrade --user pip pylint astroid typed-ast mypy
+
     - pylint3ExitCode=0
     - python3 -m pylint --rcfile ci-support/pylintrc ${LINT_FILES} | tee pylint3.log || pylint3ExitCode=$?
     - "echo EXIT: $pylint3ExitCode"
+
     - mypy2ExitCode=0
     - mypy --config-file ci-support/mypy2.ini --follow-imports=normal ${LINT_FILES} | tee mypy2.log || mypy2ExitCode=$?
     - "echo EXIT: $mypy2ExitCode"
+
     - mypy3ExitCode=0
     - mypy --config-file ci-support/mypy.ini --follow-imports=normal ${LINT_FILES} | tee mypy3.log || mypy3ExitCode=$?
     - "echo EXIT: $mypy3ExitCode"
-    - exit $(($pylint2ExitCode || $pylint3ExitCode || $mypy2ExitCode || $mypy3ExitCode))
+
+    - python2ExitCode=0
+    - python2 wwpass.py | tee python2.log || python2ExitCode=$?
+    - "echo EXIT: $python2ExitCode"
+
+    - typeguard3ExitCode=0
+    - python3 -X dev TypeGuardTest.py wwpass.py | tee typeguard3.log || typeguard3ExitCode=$?
+    - "echo EXIT: $typeguard3ExitCode"
+
+    - exit $(($pylint2ExitCode || $pylint3ExitCode || $mypy2ExitCode || $mypy3ExitCode || python2ExitCode || typeguard3ExitCode))
   allow_failure: true
   artifacts:
     paths:
@@ -33,5 +51,7 @@ lint:
       - pylint3.log
       - mypy2.log
       - mypy3.log
+      - python2.log
+      - typeguard3.log
     when: always
     name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}-lint"
