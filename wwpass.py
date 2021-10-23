@@ -118,7 +118,7 @@ class WWPassConnection(object):
 
     @staticmethod
     def _processArgs(authTypes = (), **kwargs):
-        # type: (Iterable[str], **Union[str, bytes, int]) -> str
+        # type: (Iterable[str], **Any) -> str
         kwargs['auth_type'] = ''.join(a for a in authTypes if a in VALID_AUTH_TYPES)
         return urlencode({ k: (1 if v is True else v) for (k, v) in kwargs.items() if v })
 
@@ -127,7 +127,7 @@ class WWPassConnection(object):
                     command,        # type: str
                     authTypes = (), # type: Iterable[str]
                     attempts = 3,   # type: int
-                    **kwargs        # type: Union[str, bytes, int]
+                    **kwargs        # type: Any
                    ): # type: (...) -> WWPassData
         assert method in (GET, POST)
         cgiString = self._processArgs(authTypes, **kwargs)
@@ -258,8 +258,8 @@ class WWPassConnection(object):
 class WWPassConnectionMT(WWPassConnection):
     def __init__(self,
                  initialConnections = 2, # type: int
-                 *args,                  # type: Union[str, int]
-                 **kwargs                # type: Union[str, int]
+                 *args,                  # type: Any
+                 **kwargs                # type: Any
                 ):                       # type: (...) -> None # pylint: disable=super-init-not-called
         self.initArgs = args
         self.initKWargs = kwargs
@@ -272,7 +272,7 @@ class WWPassConnectionMT(WWPassConnection):
             conn.close()
 
     def addConnection(self, acquired = False): # type: (bool) -> WWPassConnection
-        conn = WWPassConnection(*self.initArgs, **self.initKWargs) # type: ignore[arg-type]
+        conn = WWPassConnection(*self.initArgs, **self.initKWargs)
         conn.connectionLock = Lock()
         if acquired:
             assert conn.connectionLock
@@ -290,12 +290,12 @@ class WWPassConnectionMT(WWPassConnection):
     def makeRequest(self, # type: ignore[no-untyped-def, override]
                     method,  # type: str
                     command, # type: str
-                    **kwargs # type: Union[str, bytes, int, Iterable[str]]
+                    **kwargs # type: Any
                    ):        # type: (...) -> WWPassData # pylint: disable=arguments-differ
         conn = None
         try:
             conn = self.getConnection()
-            return conn.makeRequest(method, command, **kwargs) # type: ignore[arg-type]
+            return conn.makeRequest(method, command, **kwargs)
         finally:
             if conn:
                 assert conn.connectionLock
