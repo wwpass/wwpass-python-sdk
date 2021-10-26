@@ -126,7 +126,7 @@ class WWPassConnection(object):
                     method,         # type: str
                     command,        # type: str
                     authTypes = (), # type: Iterable[str]
-                    attempts = 3,   # type: int
+                    attempts = 1,   # type: int
                     **kwargs        # type: Any
                    ): # type: (...) -> WWPassData
         assert method in (GET, POST)
@@ -147,109 +147,108 @@ class WWPassConnection(object):
                     raise
                 attempts -= 1
 
-    def getName(self):
-        # type: () -> bytes
-        ticket = self.getTicket()['ticket']
+    def getName(self, attempts = 1):
+        # type: (int) -> bytes
+        ticket = self.getTicket(attempts = attempts)['ticket']
         assert isinstance(ticket, bytes)
         pos = ticket.find(b':')
         if pos == -1:
             raise WWPassException("Cannot extract service provider name from ticket")
         return ticket[:pos]
 
-    def getTicket(self, ttl = 0, authTypes = ()):
-        # type: (int, Iterable[str]) -> WWPassData
-        result = self.makeRequest(GET, 'get', ttl = ttl, authTypes = authTypes)
+    def getTicket(self, ttl = 0, authTypes = (), attempts = 1):
+        # type: (int, Iterable[str], int) -> WWPassData
+        result = self.makeRequest(GET, 'get', ttl = ttl, authTypes = authTypes, atempts = attempts)
         return {'ticket': result['data'], 'ttl': result['ttl']}
 
-    def getPUID(self, ticket, authTypes = (), finalize = False):
-        # type: (Union[str, bytes], Iterable[str], bool) -> WWPassData
-        result = self.makeRequest(GET, 'puid', ticket = ticket, authTypes = authTypes, finalize = finalize)
+    def getPUID(self, ticket, authTypes = (), finalize = False, attempts = 1):
+        # type: (Union[str, bytes], Iterable[str], bool, int) -> WWPassData
+        result = self.makeRequest(GET, 'puid', ticket = ticket, authTypes = authTypes, finalize = finalize, atempts = attempts)
         return {'puid': result['data']}
 
-    def putTicket(self, ticket, ttl = 0, authTypes = (), finalize = False):
-        # type: (Union[str, bytes], int, Iterable[str], bool) -> WWPassData
-        result = self.makeRequest(GET, 'put', ticket = ticket, ttl = ttl, authTypes = authTypes, finalize = finalize)
+    def putTicket(self, ticket, ttl = 0, authTypes = (), finalize = False, attempts = 1):
+        # type: (Union[str, bytes], int, Iterable[str], bool, int) -> WWPassData
+        result = self.makeRequest(GET, 'put', ticket = ticket, ttl = ttl, authTypes = authTypes, finalize = finalize, atempts = attempts)
         return {'ticket': result['data'], 'ttl': result['ttl']}
 
-    def readData(self, ticket, container = '', finalize = False):
-        # type: (Union[str, bytes], Union[str, bytes], bool) -> WWPassData
-        result = self.makeRequest(GET, 'read', ticket = ticket, container = container, finalize = finalize)
+    def readData(self, ticket, container = '', finalize = False, attempts = 1):
+        # type: (Union[str, bytes], Union[str, bytes], bool, int) -> WWPassData
+        result = self.makeRequest(GET, 'read', ticket = ticket, container = container, finalize = finalize, atempts = attempts)
         return {'data': result['data']}
 
-    def readDataAndLock(self, ticket, lockTimeout, container = ''):
-        # type: (Union[str, bytes], int, Union[str, bytes]) -> WWPassData
-        result = self.makeRequest(GET, 'read', ticket = ticket, container = container, lock = True, to = lockTimeout)
+    def readDataAndLock(self, ticket, lockTimeout, container = '', attempts = 1):
+        # type: (Union[str, bytes], int, Union[str, bytes], int) -> WWPassData
+        result = self.makeRequest(GET, 'read', ticket = ticket, container = container, lock = True, to = lockTimeout, atempts = attempts)
         return {'data': result['data']}
 
-    def writeData(self, ticket, data, container = '', finalize = False):
-        # type: (Union[str, bytes], Union[str, bytes], Union[str, bytes], bool) -> bool
-        self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container, finalize = finalize)
+    def writeData(self, ticket, data, container = '', finalize = False, attempts = 1):
+        # type: (Union[str, bytes], Union[str, bytes], Union[str, bytes], bool, int) -> bool
+        self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container, finalize = finalize, atempts = attempts)
         return True
 
-    def writeDataAndUnlock(self, ticket, data, container = '', finalize = False):
-        # type: (Union[str, bytes], Union[str, bytes], Union[str, bytes], bool) -> bool
-        self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container, unlock = True, finalize = finalize)
+    def writeDataAndUnlock(self, ticket, data, container = '', finalize = False, attempts = 1):
+        # type: (Union[str, bytes], Union[str, bytes], Union[str, bytes], bool, int) -> bool
+        self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container, unlock = True, finalize = finalize, atempts = attempts)
         return True
 
-    def lock(self, ticket, lockTimeout, lockid):
-        # type: (Union[str, bytes], int, Union[str, bytes]) -> bool
-        self.makeRequest(GET, 'lock', ticket = ticket, lockid = lockid, to = lockTimeout)
+    def lock(self, ticket, lockTimeout, lockid, attempts = 1):
+        # type: (Union[str, bytes], int, Union[str, bytes], int) -> bool
+        self.makeRequest(GET, 'lock', ticket = ticket, lockid = lockid, to = lockTimeout, atempts = attempts)
         return True
 
-    def unlock(self, ticket, lockid, finalize = False):
-        # type: (Union[str, bytes], Union[str, bytes], bool) -> bool
-        self.makeRequest(GET, 'unlock', ticket = ticket, lockid = lockid, finalize = finalize)
+    def unlock(self, ticket, lockid, finalize = False, attempts = 1):
+        # type: (Union[str, bytes], Union[str, bytes], bool, int) -> bool
+        self.makeRequest(GET, 'unlock', ticket = ticket, lockid = lockid, finalize = finalize, atempts = attempts)
         return True
 
-    def getSessionKey(self, ticket, finalize = False):
-        # type: (Union[str, bytes], bool) -> WWPassData
-        result = self.makeRequest(GET, 'key', ticket = ticket, finalize = finalize)
+    def getSessionKey(self, ticket, finalize = False, attempts = 1):
+        # type: (Union[str, bytes], bool, int) -> WWPassData
+        result = self.makeRequest(GET, 'key', ticket = ticket, finalize = finalize, atempts = attempts)
         return {'sessionKey': result['data']}
 
-    def createPFID(self, data = ''):
-        # type: (Union[str, bytes]) -> WWPassData
-        result = self.makeRequest(POST, 'sp/create', data = data) if data \
-            else self.makeRequest(GET, 'sp/create')
+    def createPFID(self, data = '', attempts = 1):
+        # type: (Union[str, bytes], int) -> WWPassData
+        result = self.makeRequest(POST if data else GET, 'sp/create', data = data, atempts = attempts)
         return {'pfid': result['data']}
 
-    def removePFID(self, pfid):
-        # type: (Union[str, bytes]) -> bool
-        self.makeRequest(POST, 'sp/remove', pfid = pfid)
-        return True
-
-    def readDataSP(self, pfid):
-        # type: (Union[str, bytes]) -> WWPassData
-        result = self.makeRequest(GET, 'sp/read', pfid = pfid)
-        return {'data': result['data']}
-
-    def readDataSPandLock(self, pfid, lockTimeout):
-        # type: (Union[str, bytes], int) -> WWPassData
-        result = self.makeRequest(GET, 'sp/read', pfid = pfid, to = lockTimeout, lock = True)
-        return {'data': result['data']}
-
-    def writeDataSP(self, pfid, data):
-        # type: (Union[str, bytes], Union[str, bytes]) -> bool
-        self.makeRequest(POST, 'sp/write', pfid = pfid, data = data)
-        return True
-
-    def writeDataSPandUnlock(self, pfid, data):
-        # type: (Union[str, bytes], Union[str, bytes]) -> bool
-        self.makeRequest(POST, 'sp/write', pfid = pfid, data = data, unlock = True)
-        return True
-
-    def lockSP(self, lockid, lockTimeout):
+    def removePFID(self, pfid, attempts = 1):
         # type: (Union[str, bytes], int) -> bool
-        self.makeRequest(GET, 'sp/lock', lockid = lockid, to = lockTimeout)
+        self.makeRequest(POST, 'sp/remove', pfid = pfid, atempts = attempts)
         return True
 
-    def unlockSP(self, lockid):
-        # type: (Union[str, bytes]) -> bool
-        self.makeRequest(GET, 'sp/unlock', lockid = lockid)
+    def readDataSP(self, pfid, attempts = 1):
+        # type: (Union[str, bytes], int) -> WWPassData
+        result = self.makeRequest(GET, 'sp/read', pfid = pfid, atempts = attempts)
+        return {'data': result['data']}
+
+    def readDataSPandLock(self, pfid, lockTimeout, attempts = 1):
+        # type: (Union[str, bytes], int, int) -> WWPassData
+        result = self.makeRequest(GET, 'sp/read', pfid = pfid, to = lockTimeout, lock = True, atempts = attempts)
+        return {'data': result['data']}
+
+    def writeDataSP(self, pfid, data, attempts = 1):
+        # type: (Union[str, bytes], Union[str, bytes], int) -> bool
+        self.makeRequest(POST, 'sp/write', pfid = pfid, data = data, atempts = attempts)
         return True
 
-    def getClientKey(self, ticket):
-        # type: (Union[str, bytes]) -> WWPassData
-        result = self.makeRequest(GET, 'clientkey', ticket = ticket)
+    def writeDataSPandUnlock(self, pfid, data, attempts = 1):
+        # type: (Union[str, bytes], Union[str, bytes], int) -> bool
+        self.makeRequest(POST, 'sp/write', pfid = pfid, data = data, unlock = True, atempts = attempts)
+        return True
+
+    def lockSP(self, lockid, lockTimeout, attempts = 1):
+        # type: (Union[str, bytes], int, int) -> bool
+        self.makeRequest(GET, 'sp/lock', lockid = lockid, to = lockTimeout, atempts = attempts)
+        return True
+
+    def unlockSP(self, lockid, attempts = 1):
+        # type: (Union[str, bytes], int) -> bool
+        self.makeRequest(GET, 'sp/unlock', lockid = lockid, atempts = attempts)
+        return True
+
+    def getClientKey(self, ticket, attempts = 1):
+        # type: (Union[str, bytes], int) -> WWPassData
+        result = self.makeRequest(GET, 'clientkey', ticket = ticket, atempts = attempts)
         ret = {'clientKey': result['data'], 'ttl': result['ttl']}
         if 'originalTicket' in result:
             ret['originalTicket'] = result['originalTicket']
