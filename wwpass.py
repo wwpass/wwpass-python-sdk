@@ -32,13 +32,12 @@ except ImportError: # typing is absent in Python 2 unless installed explicitly v
 import sys
 if sys.version_info[0] == 2:
     # Python 2
-    from urllib2 import urlopen, URLError
+    from urllib2 import urlopen
     from urllib import urlencode, addinfourl # pylint: disable=unused-import, useless-suppression # pylint 3/2 warnings
 else: # Python 3
     from urllib.request import urlopen     # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
     from urllib.response import addinfourl # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
     from urllib.parse import urlencode     # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
-    from urllib.error import URLError      # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
     xrange = range                         # pylint: disable=redefined-builtin,               useless-suppression # pylint 2/3 warnings
 
 # HTTP methods
@@ -126,26 +125,19 @@ class WWPassConnection(object):
                     method,         # type: str
                     command,        # type: str
                     authTypes = (), # type: Iterable[str]
-                    attempts = 3,   # type: int
                     **kwargs        # type: Any
                    ): # type: (...) -> WWPassData
         assert method in (GET, POST)
         cgiString = self._processArgs(authTypes, **kwargs)
         url = self.spfeAddress + '/' + command + ('?' + cgiString if method == GET and cgiString else '')
         data = cgiString.encode('UTF-8') if method == POST else None
-        while True:
-            try:
-                conn = urlopen(url, data, context = self.context, timeout = self.timeout) # type: addinfourl
-                ret = pickleLoads(conn.read())
-                conn.close()
-                assert isinstance(ret, dict)
-                if not ret['result']:
-                    raise WWPassException("SPFE returned error: %s%s" % (ret['code'] + ': ' if 'code' in ret else '', ret['data']))
-                return ret
-            except URLError:
-                if attempts <= 1:
-                    raise
-                attempts -= 1
+        conn = urlopen(url, data, context = self.context, timeout = self.timeout) # type: addinfourl
+        ret = pickleLoads(conn.read())
+        conn.close()
+        assert isinstance(ret, dict)
+        if not ret['result']:
+            raise WWPassException("SPFE returned error: %s%s" % (ret['code'] + ': ' if 'code' in ret else '', ret['data']))
+        return ret
 
     def getName(self):
         # type: () -> bytes
