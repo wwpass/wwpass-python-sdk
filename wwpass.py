@@ -47,7 +47,12 @@ POST = 'POST'
 SPFE_ADDRESS = 'https://spfe.wwpass.com'
 DEFAULT_TIMEOUT = 10
 
-VALID_AUTH_TYPES = 'psc' # password, sessionKey, clientKey
+# Auth factors
+PIN = 'p'
+SESSION_KEY = 's'
+CLIENT_KEY = 'c'
+
+VALID_AUTH_TYPES = PIN + SESSION_KEY + CLIENT_KEY
 
 DEFAULT_CADATA = '''-----BEGIN CERTIFICATE-----
 MIIGATCCA+mgAwIBAgIJAN7JZUlglGn4MA0GCSqGSIb3DQEBCwUAMFcxCzAJBgNV
