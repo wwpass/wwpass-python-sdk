@@ -168,22 +168,22 @@ class WWPassConnection(object):
         result = self.makeRequest(GET, 'put', ticket = ticket, ttl = ttl, authTypes = authTypes, finalize = finalize)
         return {'ticket': result['data'], 'ttl': result['ttl']}
 
-    def readData(self, ticket, container = '', finalize = False):
+    def readData(self, ticket, container = b'', finalize = False):
         # type: (Union[str, bytes], Union[str, bytes], bool) -> WWPassData
         result = self.makeRequest(GET, 'read', ticket = ticket, container = container, finalize = finalize)
         return {'data': result['data']}
 
-    def readDataAndLock(self, ticket, lockTimeout, container = ''):
+    def readDataAndLock(self, ticket, lockTimeout, container = b''):
         # type: (Union[str, bytes], int, Union[str, bytes]) -> WWPassData
         result = self.makeRequest(GET, 'read', ticket = ticket, container = container, lock = True, to = lockTimeout)
         return {'data': result['data']}
 
-    def writeData(self, ticket, data, container = '', finalize = False):
+    def writeData(self, ticket, data, container = b'', finalize = False):
         # type: (Union[str, bytes], Union[str, bytes], Union[str, bytes], bool) -> bool
         self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container, finalize = finalize)
         return True
 
-    def writeDataAndUnlock(self, ticket, data, container = '', finalize = False):
+    def writeDataAndUnlock(self, ticket, data, container = b'', finalize = False):
         # type: (Union[str, bytes], Union[str, bytes], Union[str, bytes], bool) -> bool
         self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container, unlock = True, finalize = finalize)
         return True
@@ -203,7 +203,7 @@ class WWPassConnection(object):
         result = self.makeRequest(GET, 'key', ticket = ticket, finalize = finalize)
         return {'sessionKey': result['data']}
 
-    def createPFID(self, data = ''):
+    def createPFID(self, data = b''):
         # type: (Union[str, bytes]) -> WWPassData
         result = self.makeRequest(POST, 'sp/create', data = data) if data \
             else self.makeRequest(GET, 'sp/create')
