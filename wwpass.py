@@ -205,8 +205,7 @@ class WWPassConnection(object):
 
     def createPFID(self, data = b''):
         # type: (Union[str, bytes]) -> WWPassData
-        result = self.makeRequest(POST, 'sp/create', data = data) if data \
-            else self.makeRequest(GET, 'sp/create')
+        result = self.makeRequest(POST if data else GET, 'sp/create', data = data)
         return {'pfid': result['data']}
 
     def removePFID(self, pfid):
