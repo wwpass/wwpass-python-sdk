@@ -253,12 +253,18 @@ class WWPassConnection(object):
 
 class WWPassConnectionMT(WWPassConnection):
     def __init__(self,
-                 initialConnections = 2, # type: int
-                 *args,                  # type: Any
-                 **kwargs                # type: Any
-                ):                       # type: (...) -> None # pylint: disable=super-init-not-called
-        self.initArgs = args
-        self.initKWargs = kwargs
+                 keyFile,                    # type: str
+                 certFile,                   # type: str
+                 timeout = DEFAULT_TIMEOUT,  # type: int
+                 spfeAddress = SPFE_ADDRESS, # type: str
+                 caFile = '',                # type: str
+                 initialConnections = 2,     # type: int
+                ):                           # type: (...) -> None # pylint: disable=super-init-not-called
+        self.keyFile = keyFile
+        self.certFile = certFile
+        self.timeout = timeout
+        self.spfeAddress = spfeAddress
+        self.caFile = caFile
         self.connectionPool = [] # type: List[WWPassConnection]
         for _ in xrange(initialConnections):
             self.addConnection()
@@ -268,7 +274,7 @@ class WWPassConnectionMT(WWPassConnection):
             conn.close()
 
     def addConnection(self, acquired = False): # type: (bool) -> WWPassConnection
-        conn = WWPassConnection(*self.initArgs, **self.initKWargs)
+        conn = WWPassConnection(self.keyFile, self.certFile, self.timeout, self.spfeAddress, self.caFile)
         conn.connectionLock = Lock()
         if acquired:
             assert conn.connectionLock
