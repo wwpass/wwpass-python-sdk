@@ -102,6 +102,7 @@ class WWPassConnection(object):
                  caFile = ''                 # type: str
                 ):                           # type: (...) -> None
         self.context = SSLContext(protocol = PROTOCOL_TLSv1_2)
+        self.context.check_hostname = True
         self.context.load_cert_chain(certfile = certFile, keyfile = keyFile)
         if caFile:
             self.context.load_verify_locations(cafile = caFile)
