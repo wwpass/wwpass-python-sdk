@@ -277,7 +277,6 @@ class WWPassConnectionMT(WWPassConnection):
         conn = WWPassConnection(self.keyFile, self.certFile, self.timeout, self.spfeAddress, self.caFile)
         conn.connectionLock = Lock()
         if acquired:
-            assert conn.connectionLock
             conn.connectionLock.acquire() # pylint: disable=consider-using-with
         self.connectionPool.append(conn)
         return conn
