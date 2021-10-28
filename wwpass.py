@@ -273,6 +273,9 @@ class WWPassConnectionMT(WWPassConnection):
         for conn in self.connectionPool:
             conn.close()
 
+    def __enter__(self): # type: () -> WWPassConnectionMT
+        return self
+
     def addConnection(self, acquired = False): # type: (bool) -> WWPassConnection
         conn = WWPassConnection(self.keyFile, self.certFile, self.timeout, self.spfeAddress, self.caFile)
         conn.connectionLock = Lock()
