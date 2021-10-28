@@ -44,7 +44,7 @@ else: # Python 3
 GET = 'GET'
 POST = 'POST'
 
-SPFE_ADDRESS = 'https://spfe.wwpass.com'
+SPFE_ADDRESS = 'spfe.wwpass.com'
 DEFAULT_TIMEOUT = 10
 
 # Auth factors
@@ -108,7 +108,7 @@ class WWPassConnection(object):
             self.context.load_verify_locations(cafile = caFile)
         else:
             self.context.load_verify_locations(cadata = DEFAULT_CADATA)
-        self.spfeAddress = spfeAddress if spfeAddress.find('://') >= 0 else 'https://' + spfeAddress
+        self.spfeAddress = spfeAddress[8:] if spfeAddress.lower().startswith('https://') else spfeAddress
         self.timeout = timeout
         self.connectionLock = None # type: Optional[Lock] # For WWPassConnectionMT
 
@@ -135,7 +135,7 @@ class WWPassConnection(object):
                    ): # type: (...) -> WWPassData
         assert method in (GET, POST)
         cgiString = self._processArgs(authTypes, **kwargs)
-        url = self.spfeAddress + '/' + command + ('?' + cgiString if method == GET and cgiString else '')
+        url = 'https://' + self.spfeAddress + '/' + command + ('?' + cgiString if method == GET and cgiString else '')
         data = cgiString.encode('UTF-8') if method == POST else None
         conn = urlopen(url, data, context = self.context, timeout = self.timeout) # type: addinfourl
         ret = pickleLoads(conn.read())
