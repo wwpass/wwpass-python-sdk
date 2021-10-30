@@ -123,12 +123,6 @@ class WWPassConnection(object):
     def __exit__(self, *_args, **_kwargs): # type: (*Any, **Any) -> None
         self.close()
 
-    @staticmethod
-    def _processArgs(authTypes = (), **kwargs):
-        # type: (Iterable[str], **Any) -> str
-        kwargs['auth_type'] = ''.join(a for a in authTypes if a in VALID_AUTH_TYPES)
-        return urlencode({ k: (1 if v is True else v) for (k, v) in kwargs.items() if v })
-
     def makeRequest(self,
                     method,         # type: str
                     command,        # type: str
@@ -136,7 +130,8 @@ class WWPassConnection(object):
                     **kwargs        # type: Any
                    ): # type: (...) -> WWPassData
         assert method in (GET, POST)
-        cgiString = self._processArgs(authTypes, **kwargs)
+        kwargs['auth_type'] = ''.join(a for a in authTypes if a in VALID_AUTH_TYPES)
+        cgiString = urlencode({ k: (1 if v is True else v) for (k, v) in kwargs.items() if v })
         url = 'https://' + self.spfeAddress + '/' + command + ('?' + cgiString if method == GET and cgiString else '')
         data = cgiString.encode('UTF-8') if method == POST else None
         conn = urlopen(url, data, context = self.context, timeout = self.timeout) # type: addinfourl
