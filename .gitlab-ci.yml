@@ -17,10 +17,10 @@ lint:
     - cp corenetwork-common/scripts/*.py .
 
     - pip2 install --upgrade --user pip pylint astroid
-    - pip3 install --upgrade --user pip pylint astroid typed-ast mypy typeguard
+    - pip3 install --upgrade --user pip pylint astroid typed-ast mypy flake8 typeguard
 
     - pylint2ExitCode=0
-    - python2 -m pylint --rcfile ci-support/pylint2rc --disable=bad-option-value ${LINT_FILES} | tee pylint2.log || pylint2ExitCode=$?
+    - python2 -m pylint --rcfile ci-support/pylint2rc --disable=bad-continuation,bad-option-value ${LINT_FILES} | tee pylint2.log || pylint2ExitCode=$?
     - "echo EXIT: $pylint2ExitCode"
 
     - pylint3ExitCode=0
@@ -35,6 +35,10 @@ lint:
     - mypy --config-file ci-support/mypy.ini --follow-imports=normal ${LINT_FILES} | tee mypy3.log || mypy3ExitCode=$?
     - "echo EXIT: $mypy3ExitCode"
 
+    - flake8ExitCode=0
+    - flake8 --config ci-support/flake8.ini ${LINT_FILES} | tee flake8.log || flake8ExitCode=$?
+    - "echo EXIT: $flake8ExitCode"
+
     - python2ExitCode=0
     - python2 wwpass.py | tee python2.log || python2ExitCode=$?
     - "echo EXIT: $python2ExitCode"
@@ -43,7 +47,7 @@ lint:
     - python3 -X dev TypeGuardTest.py wwpass.py | tee typeguard3.log || typeguard3ExitCode=$?
     - "echo EXIT: $typeguard3ExitCode"
 
-    - exit $(($pylint2ExitCode || $pylint3ExitCode || $mypy2ExitCode || $mypy3ExitCode || python2ExitCode || typeguard3ExitCode))
+    - exit $(( $pylint2ExitCode || $pylint3ExitCode || $mypy2ExitCode || $mypy3ExitCode || $flake8ExitCode || $python2ExitCode || $typeguard3ExitCode ))
   allow_failure: true
   artifacts:
     paths:
@@ -51,6 +55,7 @@ lint:
       - pylint3.log
       - mypy2.log
       - mypy3.log
+      - flake8.log
       - python2.log
       - typeguard3.log
     when: always

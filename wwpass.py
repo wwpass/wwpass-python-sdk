@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = "Rostislav Kondratenko <r.kondratenko@wwpass.com>"
-__date__  = "$27.11.2014 18:05:15$"
+__date__ = "$27.11.2014 18:05:15$"
 
 # Copyright 2009-2021 WWPASS Corporation
 #
@@ -24,23 +24,23 @@ from ssl import SSLContext, PROTOCOL_TLSv1_2
 from threading import Lock
 
 try:
-    from typing import Any, Dict, Iterable, List, Mapping, Optional, Union # pylint: disable=unused-import, useless-suppression
+    from typing import Any, Iterable, List, Mapping, Optional, Union  # pylint: disable=unused-import, useless-suppression  # noqa: E501
     WWPassData = Mapping[str, Union[bytes, int]]
     String = Union[str, bytes]
-except ImportError: # typing is absent in Python 2 unless installed explicitly via pip
-    WWPassData = dict # type: ignore[misc]
-    String = str # type: ignore[misc] # pylint: disable=redefined-variable-type, useless-suppression # pylint 2/3 warnings
+except ImportError:  # typing is absent in Python 2 unless installed explicitly via pip
+    WWPassData = dict  # type: ignore[misc]
+    String = str  # type: ignore[misc] # pylint: disable=redefined-variable-type, useless-suppression # pylint 2/3 warnings  # noqa: E501
 
 import sys
 if sys.version_info[0] == 2:
     # Python 2
     from urllib2 import urlopen
-    from urllib import urlencode, addinfourl # pylint: disable=unused-import, useless-suppression # pylint 3/2 warnings
-else: # Python 3
-    from urllib.request import urlopen     # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
-    from urllib.response import addinfourl # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
-    from urllib.parse import urlencode     # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings
-    xrange = range                         # pylint: disable=redefined-builtin,               useless-suppression # pylint 2/3 warnings
+    from urllib import urlencode, addinfourl  # pylint: disable=unused-import, useless-suppression # pylint 3/2 warnings
+else:  # Python 3
+    from urllib.request import urlopen      # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings  # noqa: E501
+    from urllib.response import addinfourl  # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings  # noqa: E501
+    from urllib.parse import urlencode      # pylint: disable=import-error, no-name-in-module, useless-suppression # pylint 2/3 warnings  # noqa: E501
+    xrange = range                          # pylint: disable=redefined-builtin,               useless-suppression # pylint 2/3 warnings  # noqa: E501
 
 # HTTP methods
 GET = 'GET'
@@ -92,54 +92,57 @@ LEBB84k3+v+AtbXePEwvp+o1nu/+1sRkhqlNFHN67vakqC4xTxiuPxu6Pb/uDeNI
 ip0+E9I=
 -----END CERTIFICATE-----'''
 
+
 class WWPassException(IOError):
     pass
 
+
 class WWPassConnection(object):
     def __init__(self,
-                 keyFile,                    # type: str
-                 certFile,                   # type: str
-                 timeout = DEFAULT_TIMEOUT,  # type: int
-                 spfeAddress = SPFE_ADDRESS, # type: str
-                 caFile = ''                 # type: str
-                ):                           # type: (...) -> None
-        self.context = SSLContext(protocol = PROTOCOL_TLSv1_2)
+                 keyFile,                   # type: str
+                 certFile,                  # type: str
+                 timeout=DEFAULT_TIMEOUT,   # type: int
+                 spfeAddress=SPFE_ADDRESS,  # type: str
+                 caFile=''                  # type: str
+                 ):                         # type: (...) -> None
+        self.context = SSLContext(protocol=PROTOCOL_TLSv1_2)
         self.context.check_hostname = True
-        self.context.load_cert_chain(certfile = certFile, keyfile = keyFile)
+        self.context.load_cert_chain(certfile=certFile, keyfile=keyFile)
         if caFile:
-            self.context.load_verify_locations(cafile = caFile)
+            self.context.load_verify_locations(cafile=caFile)
         else:
-            self.context.load_verify_locations(cadata = DEFAULT_CADATA)
+            self.context.load_verify_locations(cadata=DEFAULT_CADATA)
         self.spfeAddress = spfeAddress[8:] if spfeAddress.lower().startswith('https://') else spfeAddress
         self.timeout = timeout
-        self.connectionLock = None # type: Optional[Lock] # For WWPassConnectionMT
+        self.connectionLock = None  # type: Optional[Lock] # For WWPassConnectionMT
 
-    def close(self): # type: () -> None
+    def close(self):  # type: () -> None
         pass
 
-    def __enter__(self): # type: () -> WWPassConnection
+    def __enter__(self):  # type: () -> WWPassConnection
         return self
 
-    def __exit__(self, *_args, **_kwargs): # type: (*Any, **Any) -> None
+    def __exit__(self, *_args, **_kwargs):  # type: (*Any, **Any) -> None
         self.close()
 
     def makeRequest(self,
-                    method,         # type: str
-                    command,        # type: str
-                    authTypes = (), # type: Iterable[str]
-                    **kwargs        # type: Any
-                   ): # type: (...) -> WWPassData
+                    method,        # type: str
+                    command,       # type: str
+                    authTypes=(),  # type: Iterable[str]
+                    **kwargs       # type: Any
+                    ):             # type: (...) -> WWPassData
         assert method in (GET, POST)
         kwargs['auth_type'] = ''.join(a for a in authTypes if a in VALID_AUTH_TYPES)
-        cgiString = urlencode({ k: (1 if v is True else v) for (k, v) in kwargs.items() if v })
+        cgiString = urlencode({k: (1 if v is True else v) for (k, v) in kwargs.items() if v})
         url = 'https://' + self.spfeAddress + '/' + command + ('?' + cgiString if method == GET and cgiString else '')
         data = cgiString.encode('UTF-8') if method == POST else None
-        conn = urlopen(url, data, context = self.context, timeout = self.timeout) # type: addinfourl
+        conn = urlopen(url, data, context=self.context, timeout=self.timeout)  # type: addinfourl
         ret = pickleLoads(conn.read())
         conn.close()
         assert isinstance(ret, dict)
         if not ret['result']:
-            raise WWPassException("SPFE returned error: %s%s" % (ret['code'] + ': ' if 'code' in ret else '', ret['data']))
+            raise WWPassException("SPFE returned error: %s%s" %
+                                  (ret['code'] + ': ' if 'code' in ret else '', ret['data']))
         return ret
 
     def getName(self):
@@ -151,149 +154,150 @@ class WWPassConnection(object):
             raise WWPassException("Cannot extract service provider name from ticket")
         return ticket[:pos]
 
-    def getTicket(self, ttl = 0, authTypes = ()):
+    def getTicket(self, ttl=0, authTypes=()):
         # type: (int, Iterable[str]) -> WWPassData
-        result = self.makeRequest(GET, 'get', ttl = ttl, authTypes = authTypes)
+        result = self.makeRequest(GET, 'get', ttl=ttl, authTypes=authTypes)
         return {'ticket': result['data'], 'ttl': result['ttl']}
 
-    def getPUID(self, ticket, authTypes = (), finalize = False):
+    def getPUID(self, ticket, authTypes=(), finalize=False):
         # type: (String, Iterable[str], bool) -> WWPassData
-        result = self.makeRequest(GET, 'puid', ticket = ticket, authTypes = authTypes, finalize = finalize)
+        result = self.makeRequest(GET, 'puid', ticket=ticket, authTypes=authTypes, finalize=finalize)
         return {'puid': result['data']}
 
-    def putTicket(self, ticket, ttl = 0, authTypes = (), finalize = False):
+    def putTicket(self, ticket, ttl=0, authTypes=(), finalize=False):
         # type: (String, int, Iterable[str], bool) -> WWPassData
-        result = self.makeRequest(GET, 'put', ticket = ticket, ttl = ttl, authTypes = authTypes, finalize = finalize)
+        result = self.makeRequest(GET, 'put', ticket=ticket, ttl=ttl, authTypes=authTypes, finalize=finalize)
         return {'ticket': result['data'], 'ttl': result['ttl']}
 
-    def readData(self, ticket, container = b'', finalize = False):
+    def readData(self, ticket, container=b'', finalize=False):
         # type: (String, String, bool) -> WWPassData
-        result = self.makeRequest(GET, 'read', ticket = ticket, container = container, finalize = finalize)
+        result = self.makeRequest(GET, 'read', ticket=ticket, container=container, finalize=finalize)
         return {'data': result['data']}
 
-    def readDataAndLock(self, ticket, lockTimeout, container = b''):
+    def readDataAndLock(self, ticket, lockTimeout, container=b''):
         # type: (String, int, String) -> WWPassData
-        result = self.makeRequest(GET, 'read', ticket = ticket, container = container, lock = True, to = lockTimeout)
+        result = self.makeRequest(GET, 'read', ticket=ticket, container=container, lock=True, to=lockTimeout)
         return {'data': result['data']}
 
-    def writeData(self, ticket, data, container = b'', finalize = False):
+    def writeData(self, ticket, data, container=b'', finalize=False):
         # type: (String, String, String, bool) -> bool
-        self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container, finalize = finalize)
+        self.makeRequest(POST, 'write', ticket=ticket, data=data, container=container, finalize=finalize)
         return True
 
-    def writeDataAndUnlock(self, ticket, data, container = b'', finalize = False):
+    def writeDataAndUnlock(self, ticket, data, container=b'', finalize=False):
         # type: (String, String, String, bool) -> bool
-        self.makeRequest(POST, 'write', ticket = ticket, data = data, container = container, unlock = True, finalize = finalize)
+        self.makeRequest(POST, 'write', ticket=ticket, data=data, container=container, unlock=True, finalize=finalize)
         return True
 
     def lock(self, ticket, lockTimeout, lockid):
         # type: (String, int, String) -> bool
-        self.makeRequest(GET, 'lock', ticket = ticket, lockid = lockid, to = lockTimeout)
+        self.makeRequest(GET, 'lock', ticket=ticket, lockid=lockid, to=lockTimeout)
         return True
 
-    def unlock(self, ticket, lockid, finalize = False):
+    def unlock(self, ticket, lockid, finalize=False):
         # type: (String, String, bool) -> bool
-        self.makeRequest(GET, 'unlock', ticket = ticket, lockid = lockid, finalize = finalize)
+        self.makeRequest(GET, 'unlock', ticket=ticket, lockid=lockid, finalize=finalize)
         return True
 
-    def getSessionKey(self, ticket, finalize = False):
+    def getSessionKey(self, ticket, finalize=False):
         # type: (String, bool) -> WWPassData
-        result = self.makeRequest(GET, 'key', ticket = ticket, finalize = finalize)
+        result = self.makeRequest(GET, 'key', ticket=ticket, finalize=finalize)
         return {'sessionKey': result['data']}
 
-    def createPFID(self, data = b''):
+    def createPFID(self, data=b''):
         # type: (String) -> WWPassData
-        result = self.makeRequest(POST if data else GET, 'sp/create', data = data)
+        result = self.makeRequest(POST if data else GET, 'sp/create', data=data)
         return {'pfid': result['data']}
 
     def removePFID(self, pfid):
         # type: (String) -> bool
-        self.makeRequest(POST, 'sp/remove', pfid = pfid)
+        self.makeRequest(POST, 'sp/remove', pfid=pfid)
         return True
 
     def readDataSP(self, pfid):
         # type: (String) -> WWPassData
-        result = self.makeRequest(GET, 'sp/read', pfid = pfid)
+        result = self.makeRequest(GET, 'sp/read', pfid=pfid)
         return {'data': result['data']}
 
     def readDataSPandLock(self, pfid, lockTimeout):
         # type: (String, int) -> WWPassData
-        result = self.makeRequest(GET, 'sp/read', pfid = pfid, to = lockTimeout, lock = True)
+        result = self.makeRequest(GET, 'sp/read', pfid=pfid, to=lockTimeout, lock=True)
         return {'data': result['data']}
 
     def writeDataSP(self, pfid, data):
         # type: (String, String) -> bool
-        self.makeRequest(POST, 'sp/write', pfid = pfid, data = data)
+        self.makeRequest(POST, 'sp/write', pfid=pfid, data=data)
         return True
 
     def writeDataSPandUnlock(self, pfid, data):
         # type: (String, String) -> bool
-        self.makeRequest(POST, 'sp/write', pfid = pfid, data = data, unlock = True)
+        self.makeRequest(POST, 'sp/write', pfid=pfid, data=data, unlock=True)
         return True
 
     def lockSP(self, lockid, lockTimeout):
         # type: (String, int) -> bool
-        self.makeRequest(GET, 'sp/lock', lockid = lockid, to = lockTimeout)
+        self.makeRequest(GET, 'sp/lock', lockid=lockid, to=lockTimeout)
         return True
 
     def unlockSP(self, lockid):
         # type: (String) -> bool
-        self.makeRequest(GET, 'sp/unlock', lockid = lockid)
+        self.makeRequest(GET, 'sp/unlock', lockid=lockid)
         return True
 
     def getClientKey(self, ticket):
         # type: (String) -> WWPassData
-        result = self.makeRequest(GET, 'clientkey', ticket = ticket)
+        result = self.makeRequest(GET, 'clientkey', ticket=ticket)
         ret = {'clientKey': result['data'], 'ttl': result['ttl']}
         if 'originalTicket' in result:
             ret['originalTicket'] = result['originalTicket']
         return ret
 
+
 class WWPassConnectionMT(WWPassConnection):
-    def __init__(self,
-                 keyFile,                    # type: str
-                 certFile,                   # type: str
-                 timeout = DEFAULT_TIMEOUT,  # type: int
-                 spfeAddress = SPFE_ADDRESS, # type: str
-                 caFile = '',                # type: str
-                 initialConnections = 2,     # type: int
-                ):                           # type: (...) -> None # pylint: disable=super-init-not-called
+    def __init__(self,  # pylint: disable=super-init-not-called
+                 keyFile,                   # type: str
+                 certFile,                  # type: str
+                 timeout=DEFAULT_TIMEOUT,   # type: int
+                 spfeAddress=SPFE_ADDRESS,  # type: str
+                 caFile='',                 # type: str
+                 initialConnections=2,      # type: int
+                 ):                         # type: (...) -> None
         self.keyFile = keyFile
         self.certFile = certFile
         self.timeout = timeout
         self.spfeAddress = spfeAddress
         self.caFile = caFile
-        self.connectionPool = [] # type: List[WWPassConnection]
+        self.connectionPool = []  # type: List[WWPassConnection]
         for _ in xrange(initialConnections):
             self.addConnection()
 
-    def close(self): # type: () -> None
+    def close(self):  # type: () -> None
         for conn in self.connectionPool:
             conn.close()
 
-    def __enter__(self): # type: () -> WWPassConnectionMT
+    def __enter__(self):  # type: () -> WWPassConnectionMT
         return self
 
-    def addConnection(self, acquired = False): # type: (bool) -> WWPassConnection
+    def addConnection(self, acquired=False):  # type: (bool) -> WWPassConnection
         conn = WWPassConnection(self.keyFile, self.certFile, self.timeout, self.spfeAddress, self.caFile)
         conn.connectionLock = Lock()
         if acquired:
-            conn.connectionLock.acquire() # pylint: disable=consider-using-with
+            conn.connectionLock.acquire()  # pylint: disable=consider-using-with
         self.connectionPool.append(conn)
         return conn
 
-    def getConnection(self): # type: () -> WWPassConnection
+    def getConnection(self):  # type: () -> WWPassConnection
         for conn in self.connectionPool:
             assert conn.connectionLock
             if conn.connectionLock.acquire(False):
                 return conn
         return self.addConnection(True)
 
-    def makeRequest(self, # type: ignore[no-untyped-def, override]
-                    method,  # type: str
-                    command, # type: str
-                    **kwargs # type: Any
-                   ):        # type: (...) -> WWPassData # pylint: disable=arguments-differ
+    def makeRequest(self,     # type: ignore[no-untyped-def, override]  # pylint: disable=arguments-differ
+                    method,   # type: str
+                    command,  # type: str
+                    **kwargs  # type: Any
+                    ):        # type: (...) -> WWPassData
         conn = None
         try:
             conn = self.getConnection()
