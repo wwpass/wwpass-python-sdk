@@ -99,22 +99,22 @@ class WWPassException(IOError):
 
 class WWPassConnection(object):
     def __init__(self,
-                 keyFile,                   # type: str
-                 certFile,                  # type: str
-                 timeout=DEFAULT_TIMEOUT,   # type: int
-                 spfeAddress=SPFE_ADDRESS,  # type: str
-                 caFile=''                  # type: str
-                 ):                         # type: (...) -> None
+                 key_file,                   # type: str
+                 cert_file,                  # type: str
+                 timeout=DEFAULT_TIMEOUT,    # type: int
+                 spfe_address=SPFE_ADDRESS,  # type: str
+                 ca_file=''                  # type: str
+                 ):                          # type: (...) -> None
         self.context = SSLContext(protocol=PROTOCOL_TLSv1_2)
         self.context.check_hostname = True
-        self.context.load_cert_chain(certfile=certFile, keyfile=keyFile)
-        if caFile:
-            self.context.load_verify_locations(cafile=caFile)
+        self.context.load_cert_chain(certfile=cert_file, keyfile=key_file)
+        if ca_file:
+            self.context.load_verify_locations(cafile=ca_file)
         else:
             self.context.load_verify_locations(cadata=DEFAULT_CADATA)
-        self.spfeAddress = spfeAddress[8:] if spfeAddress.lower().startswith('https://') else spfeAddress
+        self.spfe_address = spfe_address[8:] if spfe_address.lower().startswith('https://') else spfe_address
         self.timeout = timeout
-        self.connectionLock = None  # type: Optional[Lock] # For WWPassConnectionMT
+        self.connection_lock = None  # type: Optional[Lock] # For WWPassConnectionMT
 
     def close(self):  # type: () -> None
         pass
@@ -128,14 +128,15 @@ class WWPassConnection(object):
     def makeRequest(self,
                     method,        # type: str
                     command,       # type: str
-                    authTypes=(),  # type: Iterable[str]
+                    auth_types=(),  # type: Iterable[str]
                     **kwargs       # type: Any
                     ):             # type: (...) -> WWPassData
         assert method in (GET, POST)
-        kwargs['auth_type'] = ''.join(a for a in authTypes if a in VALID_AUTH_TYPES)
-        cgiString = urlencode({k: (1 if v is True else v) for (k, v) in kwargs.items() if v})
-        url = 'https://' + self.spfeAddress + '/' + command + ('?' + cgiString if method == GET and cgiString else '')
-        data = cgiString.encode('UTF-8') if method == POST else None
+        kwargs['auth_type'] = ''.join(a for a in auth_types if a in VALID_AUTH_TYPES)
+        cgi_string = urlencode({k: (1 if v is True else v) for (k, v) in kwargs.items() if v})
+        url = 'https://' + self.spfe_address + '/' + command + \
+              ('?' + cgi_string if method == GET and cgi_string else '')
+        data = cgi_string.encode('UTF-8') if method == POST else None
         conn = urlopen(url, data, context=self.context, timeout=self.timeout)  # type: addinfourl
         ret = pickleLoads(conn.read())
         conn.close()
@@ -154,19 +155,19 @@ class WWPassConnection(object):
             raise WWPassException("Cannot extract service provider name from ticket")
         return ticket[:pos]
 
-    def getTicket(self, ttl=0, authTypes=()):
+    def getTicket(self, ttl=0, auth_types=()):
         # type: (int, Iterable[str]) -> WWPassData
-        result = self.makeRequest(GET, 'get', ttl=ttl, authTypes=authTypes)
+        result = self.makeRequest(GET, 'get', ttl=ttl, auth_types=auth_types)
         return {'ticket': result['data'], 'ttl': result['ttl']}
 
-    def getPUID(self, ticket, authTypes=(), finalize=False):
+    def getPUID(self, ticket, auth_types=(), finalize=False):
         # type: (String, Iterable[str], bool) -> WWPassData
-        result = self.makeRequest(GET, 'puid', ticket=ticket, authTypes=authTypes, finalize=finalize)
+        result = self.makeRequest(GET, 'puid', ticket=ticket, auth_types=auth_types, finalize=finalize)
         return {'puid': result['data']}
 
-    def putTicket(self, ticket, ttl=0, authTypes=(), finalize=False):
+    def putTicket(self, ticket, ttl=0, auth_types=(), finalize=False):
         # type: (String, int, Iterable[str], bool) -> WWPassData
-        result = self.makeRequest(GET, 'put', ticket=ticket, ttl=ttl, authTypes=authTypes, finalize=finalize)
+        result = self.makeRequest(GET, 'put', ticket=ticket, ttl=ttl, auth_types=auth_types, finalize=finalize)
         return {'ticket': result['data'], 'ttl': result['ttl']}
 
     def readData(self, ticket, container=b'', finalize=False):
@@ -174,9 +175,9 @@ class WWPassConnection(object):
         result = self.makeRequest(GET, 'read', ticket=ticket, container=container, finalize=finalize)
         return {'data': result['data']}
 
-    def readDataAndLock(self, ticket, lockTimeout, container=b''):
+    def readDataAndLock(self, ticket, lock_timeout, container=b''):
         # type: (String, int, String) -> WWPassData
-        result = self.makeRequest(GET, 'read', ticket=ticket, container=container, lock=True, to=lockTimeout)
+        result = self.makeRequest(GET, 'read', ticket=ticket, container=container, lock=True, to=lock_timeout)
         return {'data': result['data']}
 
     def writeData(self, ticket, data, container=b'', finalize=False):
@@ -189,9 +190,9 @@ class WWPassConnection(object):
         self.makeRequest(POST, 'write', ticket=ticket, data=data, container=container, unlock=True, finalize=finalize)
         return True
 
-    def lock(self, ticket, lockTimeout, lockid):
+    def lock(self, ticket, lock_timeout, lockid):
         # type: (String, int, String) -> bool
-        self.makeRequest(GET, 'lock', ticket=ticket, lockid=lockid, to=lockTimeout)
+        self.makeRequest(GET, 'lock', ticket=ticket, lockid=lockid, to=lock_timeout)
         return True
 
     def unlock(self, ticket, lockid, finalize=False):
@@ -219,9 +220,9 @@ class WWPassConnection(object):
         result = self.makeRequest(GET, 'sp/read', pfid=pfid)
         return {'data': result['data']}
 
-    def readDataSPandLock(self, pfid, lockTimeout):
+    def readDataSPandLock(self, pfid, lock_timeout):
         # type: (String, int) -> WWPassData
-        result = self.makeRequest(GET, 'sp/read', pfid=pfid, to=lockTimeout, lock=True)
+        result = self.makeRequest(GET, 'sp/read', pfid=pfid, to=lock_timeout, lock=True)
         return {'data': result['data']}
 
     def writeDataSP(self, pfid, data):
@@ -234,9 +235,9 @@ class WWPassConnection(object):
         self.makeRequest(POST, 'sp/write', pfid=pfid, data=data, unlock=True)
         return True
 
-    def lockSP(self, lockid, lockTimeout):
+    def lockSP(self, lockid, lock_timeout):
         # type: (String, int) -> bool
-        self.makeRequest(GET, 'sp/lock', lockid=lockid, to=lockTimeout)
+        self.makeRequest(GET, 'sp/lock', lockid=lockid, to=lock_timeout)
         return True
 
     def unlockSP(self, lockid):
@@ -255,41 +256,41 @@ class WWPassConnection(object):
 
 class WWPassConnectionMT(WWPassConnection):
     def __init__(self,  # pylint: disable=super-init-not-called
-                 keyFile,                   # type: str
-                 certFile,                  # type: str
-                 timeout=DEFAULT_TIMEOUT,   # type: int
-                 spfeAddress=SPFE_ADDRESS,  # type: str
-                 caFile='',                 # type: str
-                 initialConnections=2,      # type: int
-                 ):                         # type: (...) -> None
-        self.keyFile = keyFile
-        self.certFile = certFile
+                 key_file,                   # type: str
+                 cert_file,                  # type: str
+                 timeout=DEFAULT_TIMEOUT,    # type: int
+                 spfe_address=SPFE_ADDRESS,  # type: str
+                 ca_file='',                 # type: str
+                 initial_connections=2,      # type: int
+                 ):                          # type: (...) -> None
+        self.key_file = key_file
+        self.cert_file = cert_file
         self.timeout = timeout
-        self.spfeAddress = spfeAddress
-        self.caFile = caFile
-        self.connectionPool = []  # type: List[WWPassConnection]
-        for _ in xrange(initialConnections):
+        self.spfe_address = spfe_address
+        self.ca_file = ca_file
+        self.connection_pool = []  # type: List[WWPassConnection]
+        for _ in xrange(initial_connections):
             self.addConnection()
 
     def close(self):  # type: () -> None
-        for conn in self.connectionPool:
+        for conn in self.connection_pool:
             conn.close()
 
     def __enter__(self):  # type: () -> WWPassConnectionMT
         return self
 
     def addConnection(self, acquired=False):  # type: (bool) -> WWPassConnection
-        conn = WWPassConnection(self.keyFile, self.certFile, self.timeout, self.spfeAddress, self.caFile)
-        conn.connectionLock = Lock()
+        conn = WWPassConnection(self.key_file, self.cert_file, self.timeout, self.spfe_address, self.ca_file)
+        conn.connection_lock = Lock()
         if acquired:
-            conn.connectionLock.acquire()  # pylint: disable=consider-using-with
-        self.connectionPool.append(conn)
+            conn.connection_lock.acquire()  # pylint: disable=consider-using-with
+        self.connection_pool.append(conn)
         return conn
 
     def getConnection(self):  # type: () -> WWPassConnection
-        for conn in self.connectionPool:
-            assert conn.connectionLock
-            if conn.connectionLock.acquire(False):
+        for conn in self.connection_pool:
+            assert conn.connection_lock
+            if conn.connection_lock.acquire(False):
                 return conn
         return self.addConnection(True)
 
@@ -304,5 +305,5 @@ class WWPassConnectionMT(WWPassConnection):
             return conn.makeRequest(method, command, **kwargs)
         finally:
             if conn:
-                assert conn.connectionLock
-                conn.connectionLock.release()
+                assert conn.connection_lock
+                conn.connection_lock.release()
