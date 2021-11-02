@@ -19,6 +19,7 @@ __date__ = "$27.11.2014 18:05:15$"
 # These are Python 3 recommendations that are not valid for Python 2 compatible code:
 # pylint: disable=consider-using-assignment-expr, consider-using-f-string, useless-object-inheritance
 
+from logging import getLogger
 from pickle import loads as pickleLoads
 from ssl import SSLContext, PROTOCOL_TLSv1_2
 from threading import Lock
@@ -116,6 +117,8 @@ class WWPassConnection(object):
         self.spfe_address = spfe_address[8:] if spfe_address.lower().startswith('https://') else spfe_address
         self.timeout = timeout
         self.connection_lock = None  # type: Optional[Lock] # For WWPassConnectionMT
+        self.logger = getLogger(type(self).__name__)
+        self.logger.debug("Created for %s", self.spfe_address)
 
     def close(self):  # type: () -> None
         pass
@@ -138,6 +141,7 @@ class WWPassConnection(object):
         url = 'https://' + self.spfe_address + '/' + command + \
               ('?' + cgi_string if method == GET and cgi_string else '')
         data = cgi_string.encode('UTF-8') if method == POST else None
+        self.logger.debug("Going to %s", url)
         conn = urlopen(url, data, context=self.context, timeout=self.timeout)  # type: addinfourl
         ret = pickleLoads(conn.read())
         conn.close()
@@ -270,6 +274,8 @@ class WWPassConnectionMT(WWPassConnection):
         self.spfe_address = spfe_address
         self.ca_file = ca_file
         self.connection_pool = []  # type: List[WWPassConnection]
+        self.logger = getLogger(type(self).__name__)
+        self.logger.debug("Created for %s", self.spfe_address)
         for _ in xrange(initial_connections):
             self.addConnection()
 
