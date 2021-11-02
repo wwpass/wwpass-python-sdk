@@ -40,34 +40,34 @@ Both classes have the same interface.  MT stands for Multi-Threaded; it should b
 
 #### Class WWPassConnection
 ##### Declaration
-    WWPassConnection(keyFile, certFile, timeout=10, spfeAddress='https://spfe.wwpass.com', caFile=None)
+    WWPassConnection(key_file, cert_file, timeout=10, spfe_address='https://spfe.wwpass.com', ca_file=None)
 ##### Purpose
 `WWPassConnection` is the class for a WWPass SPFE connection, and a new connection is initiated every time a connection request is made.  The WWPass CA certificate is required for validating the SPFE certificate and can be downloaded at <https://developers.wwpass.com/downloads/wwpass.ca>.
 ##### Parameters
 | Name | Description |
 | --------- | ---------------- |
-| `keyFile` | The path to the Service Provider's private key file. |
-| `certFile` | The path to the Service Provider's certificate file. |
+| `key_file` | The path to the Service Provider's private key file. |
+| `cert_file` | The path to the Service Provider's certificate file. |
 | `timeout` | Timeout of requests to SPFE measured in seconds. It is used in all operations. The default is 600 seconds. |
-| `spfeAddress` | The hostname or base URL of the SPFE. The default name is <https://spfe.wwpass.com>. |
-| `caFile` |The path to the WWPass Service Provider CA certificate (optional). |
+| `spfe_address` | The hostname or base URL of the SPFE. The default name is <https://spfe.wwpass.com>. |
+| `ca_file` |The path to the WWPass Service Provider CA certificate (optional). |
 ##### Exception (Throw)
 `WWPassException` is thrown.
 
 #### Class WWPassConnectionMT
 ##### Declaration
-    WWPassConnectionMT(keyFile, certFile, timeout=10, spfeAddress='https://spfe.wwpass.com', caFile=None, initialConnections=2)
+    WWPassConnectionMT(key_file, cert_file, timeout=10, spfe_address='https://spfe.wwpass.com', ca_file=None, initial_connections=2)
 ##### Purpose
 `WWPassConnectionMT` is an extension over the `WWPassConnection` class to support multi-threaded applications. The actual number of connections grows on demand. This class is thread-safe.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
-| `keyFile` | The path to the Service Provider's private key file. |
-| `certFile` | The path to the Service Provider's certificate file. |
+| `key_file` | The path to the Service Provider's private key file. |
+| `cert_file` | The path to the Service Provider's certificate file. |
 | `timeout` | Timeout of requests to SPFE measured in seconds. It is used in all operations. The default is 600 seconds. |
-| `spfeAddress` | The hostname or base URL of the SPFE. The default name is <https://spfe.wwpass.com>. |
-| `caFile` | The path to the WWPass Service Provider CA certificate (optional). |
-| `initialConnections` | The number of connections to the SPFE that are initially set up. The default is 2. |
+| `spfe_address` | The hostname or base URL of the SPFE. The default name is <https://spfe.wwpass.com>. |
+| `ca_file` | The path to the WWPass Service Provider CA certificate (optional). |
+| `initial_connections` | The number of connections to the SPFE that are initially set up. The default is 2. |
 ##### Throws
 `WWPassException`
 
@@ -86,14 +86,14 @@ SP name
 
 #### getTicket()
 ##### Declaration
-    WWPassConnection.getTicket(ttl=None, authTypes=())
+    WWPassConnection.getTicket(ttl=None, auth_types=())
 ##### Purpose
 Calls to this function get a newly-issued ticket from SPFE.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
 | `ttl` | The period in seconds for the ticket to remain valid since issuance. The default is 600 seconds. |
-| `authTypes` | Defines options that will be asked from the user to authenticate this ticket. This is checked against what was actually used when the ticket was authenticated. The values may be a sequence with any combination of following constants: `PIN` — to ask for PassKey and access code; `SESSION_KEY` — to generate cryptographically secure random number that would be available both to client and Service Provider; `CLIENT_KEY` — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty sequence to ask for PassKey only (default). |
+| `auth_types` | Defines options that will be asked from the user to authenticate this ticket. This is checked against what was actually used when the ticket was authenticated. The values may be a sequence with any combination of following constants: `PIN` — to ask for PassKey and access code; `SESSION_KEY` — to generate cryptographically secure random number that would be available both to client and Service Provider; `CLIENT_KEY` — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty sequence to ask for PassKey only (default). |
 ##### Returns
 `{"ticket" : <Ticket issued by the SPFE>, "ttl" : <ticket's time-to-live in seconds>}`
 ##### Throws
@@ -101,14 +101,14 @@ Calls to this function get a newly-issued ticket from SPFE.
 
 #### getPUID()
 #### Declaration
-    WWPassConnection.getPUID(ticket, authTypes=(), finalize=None)
+    WWPassConnection.getPUID(ticket, auth_types=(), finalize=None)
 ##### Purpose
 `WWPassConnection.getPUID()` gets the id of the user from the Service Provider Front End. This ID is unique for each Service Provider.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
 | `ticket` | The authenticated ticket. |
-| `authTypes` | Defines options that should have been asked from the user to authenticate this ticket. This is checked against what was actually used when the ticket was authenticated. The values may be a sequence with any combination of following constants: `PIN` — to ask for PassKey and access code; `SESSION_KEY` — to generate cryptographically secure random number that would be available both to client and Service Provider; `CLIENT_KEY` — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty sequence to ask for PassKey only (default). |
+| `auth_types` | Defines options that should have been asked from the user to authenticate this ticket. This is checked against what was actually used when the ticket was authenticated. The values may be a sequence with any combination of following constants: `PIN` — to ask for PassKey and access code; `SESSION_KEY` — to generate cryptographically secure random number that would be available both to client and Service Provider; `CLIENT_KEY` — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty sequence to ask for PassKey only (default). |
 | `finalize` | Set to `True` value to close the ticket after this operation is finished. |
 ##### Returns
 `{"puid" : <PUID>}`
@@ -117,7 +117,7 @@ Calls to this function get a newly-issued ticket from SPFE.
 
 #### putTicket()
 ##### Declaration
-    WWPassConnection.putTicket(ticket, ttl=None, authTypes=(), finalize=None)
+    WWPassConnection.putTicket(ticket, ttl=None, auth_types=(), finalize=None)
 ##### Purpose
 A call to this function checks the authentication of the ticket and may issue a new ticket from SPFE.  All subsequent operations should use a returned ticket instead of one provided to `putTicket()`.
 ##### Parameters
@@ -125,7 +125,7 @@ A call to this function checks the authentication of the ticket and may issue a 
 | ------- | -------------- |
 | `ticket`	 | The ticket to validate. |
 | `ttl` | The period in seconds for the ticket to remain valid since issuance. The default is 600 seconds. |
-| `authTypes` | Defines options that should have been asked from the user to authenticate this ticket. This is checked against what was actually used when the ticket was authenticated. The values may be a sequence with any combination of following constants: `PIN` — to ask for PassKey and access code; `SESSION_KEY` — to generate cryptographically secure random number that would be available both to client and Service Provider; `CLIENT_KEY` — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty sequence to ask for PassKey only (default). |
+| `auth_types` | Defines options that should have been asked from the user to authenticate this ticket. This is checked against what was actually used when the ticket was authenticated. The values may be a sequence with any combination of following constants: `PIN` — to ask for PassKey and access code; `SESSION_KEY` — to generate cryptographically secure random number that would be available both to client and Service Provider; `CLIENT_KEY` — to generate cryptographic key, specific to user-applicalation pair, encrypted by one-time random key that must never leave client system; or empty sequence to ask for PassKey only (default). |
 | `finalize` | Set to `True` value to invalidate the ticket after this operation is finished. |
 ##### Returns
 `{"ticket" : <newly-issued ticket>, "ttl" : <ticket's time-to-live in seconds>}`
@@ -153,7 +153,7 @@ Calls to this function request data stored in the user’s data container.
 
 #### readDataAndLock()
 ##### Declaration
-    WWPassConnection.readDataAndLock(ticket, lockTimeout, container=b'')
+    WWPassConnection.readDataAndLock(ticket, lock_timeout, container=b'')
 ##### Purpose
 Calls to this function request data stored in the user’s data container and locks an advisory lock with the same name as the name of the data container.  Each WWPass lock has a name or “lock id.”  This function operates locks with the same name as the pertinent data container.
 **Note:** The lock does not lock the data container.  It locks only itself, a common behavior to locks/flags/semaphores in other languages/APIs – so-called “advisory locks.”
@@ -161,7 +161,7 @@ Calls to this function request data stored in the user’s data container and lo
 | Name | Description |
 | ------- | -------------- |
 | `ticket` | The authenticated ticket issued by the SPFE. |
-| `lockTimeout` | The period in seconds for the data container to remain protected from the new lock being acquired. |
+| `lock_timeout` | The period in seconds for the data container to remain protected from the new lock being acquired. |
 | `container` | Arbitrary bytes object, limited by 16 bytes, identifying the user’s data container. |
 ##### Returns
 `{"data": <data>}` or
@@ -205,7 +205,7 @@ A call to this function writes data into the user's data container and unlocks a
 
 #### lock()
 ##### Declaration
-    WWPassConnection.lock(ticket, lockTimeout, lockid)
+    WWPassConnection.lock(ticket, lock_timeout, lockid)
 ##### Purpose
 Calls to this function locks an advisory lock identified by the user (by authenticated ticket) and lock ID.
 **Note:** The lock does not lock any data container.  It locks only itself, a common behavior to locks/flags/semaphores in other languages/APIs – so-called “advisory locks.”
@@ -213,7 +213,7 @@ Calls to this function locks an advisory lock identified by the user (by authent
 | Name | Description |
 | ------- | -------------- |
 | `ticket` | The authenticated ticket issued by the SPFE. |
-| `lockTimeout` | The period in seconds for the data container to remain protected from the new lock being acquired. |
+| `lock_timeout` | The period in seconds for the data container to remain protected from the new lock being acquired. |
 | `lockid` | Arbitrary bytes object, up to 16 bytes, identifying the lock. |
 ##### Returns
 `True`
@@ -314,14 +314,14 @@ Calls to this function request data stored in the SP-specific data container.
 
 #### readDataSPandLock()
 ##### Declaration
-    WWPassConnection.readDataSPandLock(pfid, lockTimeout)
+    WWPassConnection.readDataSPandLock(pfid, lock_timeout)
 ##### Purpose
 Calls to this function request the binary data stored in the Service Provider's Data Container and try to atomically lock an associated lock.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
 | `pfid` | The Data Container Identifier as returned by `createPFID()`. |
-| `lockTimeout` | Timeout in seconds after which the lock will expire. |
+| `lock_timeout` | Timeout in seconds after which the lock will expire. |
 ##### Returns
 `{"data" : <data>}` or
 `{"data" : None}` if the container does not exist.
@@ -360,14 +360,14 @@ Writes data into the SP-specific data container and unlocks an associated lock. 
 
 #### lockSP()
 ##### Declaration
-    WWPassConnection.lockSP(lockid, lockTimeout)
+    WWPassConnection.lockSP(lockid, lock_timeout)
 ##### Purpose
 A call to this function tries to lock a lock identified by lockid.
 ##### Parameters
 | Name | Description |
 | ------- | -------------- |
 | `lockid` | Arbitrary bytes object, up to 16 bytes, identifying the lock. |
-| `lockTimeout` | The period in seconds for the data container to remain protected from the new lock being acquired. |
+| `lock_timeout` | The period in seconds for the data container to remain protected from the new lock being acquired. |
 ##### Returns
 `True`
 ##### Throws
