@@ -1,7 +1,7 @@
 # WWPass Python SDK
 Version 3.0
 
-October 2021
+November 2021
 
 ## CHAPTER 1 - OVERVIEW
 ### Introduction

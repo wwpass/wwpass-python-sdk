@@ -127,11 +127,11 @@ class WWPassConnection(object):
         self.close()
 
     def makeRequest(self,
-                    method,        # type: str
-                    command,       # type: str
+                    method,         # type: str
+                    command,        # type: str
                     auth_types=(),  # type: Iterable[str]
-                    **kwargs       # type: Any
-                    ):             # type: (...) -> WWPassData
+                    **kwargs        # type: Any
+                    ):              # type: (...) -> WWPassData
         assert method in (GET, POST)
         kwargs['auth_type'] = ''.join(a for a in auth_types if a in VALID_AUTH_TYPES)
         cgi_string = urlencode({k: (1 if v is True else v) for (k, v) in kwargs.items() if v})
