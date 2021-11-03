@@ -118,7 +118,6 @@ class WWPassConnection(object):
         self.timeout = timeout
         self.connection_lock = None  # type: Optional[Lock] # For WWPassConnectionMT
         self.logger = getLogger(type(self).__name__)
-        self.logger.debug("Created for %s", self.spfe_address)
 
     def close(self):  # type: () -> None
         pass
@@ -275,7 +274,6 @@ class WWPassConnectionMT(WWPassConnection):
         self.ca_file = ca_file
         self.connection_pool = []  # type: List[WWPassConnection]
         self.logger = getLogger(type(self).__name__)
-        self.logger.debug("Created for %s", self.spfe_address)
         for _ in xrange(initial_connections):
             self.addConnection()
 
