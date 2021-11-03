@@ -275,7 +275,7 @@ class WWPassConnectionMT(WWPassConnection):
         self.connection_pool = []  # type: List[WWPassConnection]
         self.logger = getLogger(type(self).__name__)
         for _ in xrange(initial_connections):
-            self.addConnection()
+            self._addConnection()
 
     def close(self):  # type: () -> None
         for conn in self.connection_pool:
@@ -284,7 +284,7 @@ class WWPassConnectionMT(WWPassConnection):
     def __enter__(self):  # type: () -> WWPassConnectionMT
         return self
 
-    def addConnection(self, acquired=False):  # type: (bool) -> WWPassConnection
+    def _addConnection(self, acquired=False):  # type: (bool) -> WWPassConnection
         conn = WWPassConnection(self.key_file, self.cert_file, self.timeout, self.spfe_address, self.ca_file)
         conn.connection_lock = Lock()
         if acquired:
@@ -292,12 +292,12 @@ class WWPassConnectionMT(WWPassConnection):
         self.connection_pool.append(conn)
         return conn
 
-    def getConnection(self):  # type: () -> WWPassConnection
+    def _getConnection(self):  # type: () -> WWPassConnection
         for conn in self.connection_pool:
             assert conn.connection_lock
             if conn.connection_lock.acquire(False):
                 return conn
-        return self.addConnection(True)
+        return self._addConnection(True)
 
     def makeRequest(self,     # type: ignore[no-untyped-def, override]  # pylint: disable=arguments-differ
                     method,   # type: str
@@ -306,7 +306,7 @@ class WWPassConnectionMT(WWPassConnection):
                     ):        # type: (...) -> WWPassData
         conn = None
         try:
-            conn = self.getConnection()
+            conn = self._getConnection()
             return conn.makeRequest(method, command, **kwargs)
         finally:
             if conn:
