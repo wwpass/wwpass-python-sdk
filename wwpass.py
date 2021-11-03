@@ -267,6 +267,7 @@ class WWPassConnectionMT(WWPassConnection):
                  ca_file='',                 # type: str
                  initial_connections=2,      # type: int
                  ):                          # type: (...) -> None
+        # super().__init__() is not called as this class itself does not make any connections
         self.key_file = key_file
         self.cert_file = cert_file
         self.timeout = timeout
