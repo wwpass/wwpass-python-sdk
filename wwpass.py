@@ -19,7 +19,6 @@ __date__ = "$27.11.2014 18:05:15$"
 # These are Python 3 recommendations that are not valid for Python 2 compatible code:
 # pylint: disable=consider-using-assignment-expr, consider-using-f-string, useless-object-inheritance
 
-from logging import getLogger
 from pickle import loads as pickleLoads
 from ssl import SSLContext, PROTOCOL_TLSv1_2
 from threading import Lock
@@ -117,8 +116,6 @@ class WWPassConnection(object):
         self.spfe_address = spfe_address[8:] if spfe_address.lower().startswith('https://') else spfe_address
         self.timeout = timeout
         self.connection_lock = None  # type: Optional[Lock] # For WWPassConnectionMT
-        self.logger = getLogger(type(self).__name__)
-        self.logger.debug("Created for %s", self.spfe_address)
 
     def close(self):  # type: () -> None
         pass
@@ -141,7 +138,6 @@ class WWPassConnection(object):
         url = 'https://' + self.spfe_address + '/' + command + \
               ('?' + cgi_string if method == GET and cgi_string else '')
         data = cgi_string.encode('UTF-8') if method == POST else None
-        self.logger.debug("Going to %s", url)
         conn = urlopen(url, data, context=self.context, timeout=self.timeout)  # type: addinfourl
         ret = pickleLoads(conn.read())
         conn.close()
@@ -268,25 +264,21 @@ class WWPassConnectionMT(WWPassConnection):
                  ca_file='',                 # type: str
                  initial_connections=2,      # type: int
                  ):                          # type: (...) -> None
+        # super().__init__() is not called as this class itself does not make any connections
         self.key_file = key_file
         self.cert_file = cert_file
         self.timeout = timeout
         self.spfe_address = spfe_address
         self.ca_file = ca_file
         self.connection_pool = []  # type: List[WWPassConnection]
-        self.logger = getLogger(type(self).__name__)
-        self.logger.debug("Created for %s", self.spfe_address)
         for _ in xrange(initial_connections):
-            self.addConnection()
+            self._addConnection()
 
     def close(self):  # type: () -> None
         for conn in self.connection_pool:
             conn.close()
 
-    def __enter__(self):  # type: () -> WWPassConnectionMT
-        return self
-
-    def addConnection(self, acquired=False):  # type: (bool) -> WWPassConnection
+    def _addConnection(self, acquired=False):  # type: (bool) -> WWPassConnection
         conn = WWPassConnection(self.key_file, self.cert_file, self.timeout, self.spfe_address, self.ca_file)
         conn.connection_lock = Lock()
         if acquired:
@@ -294,12 +286,12 @@ class WWPassConnectionMT(WWPassConnection):
         self.connection_pool.append(conn)
         return conn
 
-    def getConnection(self):  # type: () -> WWPassConnection
+    def _getConnection(self):  # type: () -> WWPassConnection
         for conn in self.connection_pool:
             assert conn.connection_lock
             if conn.connection_lock.acquire(False):
                 return conn
-        return self.addConnection(True)
+        return self._addConnection(True)
 
     def makeRequest(self,     # type: ignore[no-untyped-def, override]  # pylint: disable=arguments-differ
                     method,   # type: str
@@ -308,7 +300,7 @@ class WWPassConnectionMT(WWPassConnection):
                     ):        # type: (...) -> WWPassData
         conn = None
         try:
-            conn = self.getConnection()
+            conn = self._getConnection()
             return conn.makeRequest(method, command, **kwargs)
         finally:
             if conn:
